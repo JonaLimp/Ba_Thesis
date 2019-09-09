@@ -50,7 +50,7 @@ def main(config):
     """
     Main
     """
-    data_loader = get_data_loader(
+    data_loader = get_dataloader(
         config.TRAIN.BATCH_SIZE,
         config.SEED,
         config.TRAIN.NUM,
