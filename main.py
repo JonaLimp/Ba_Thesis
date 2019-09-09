@@ -57,6 +57,7 @@ def main(config):
         config.TRAIN.VALID,
         config.TRAIN.IS_TRAIN,
         config.GPU,
+        config.LABEL
     )
 
     logger.debug("Calling trainer")
