@@ -1,20 +1,20 @@
 import tensorflow as tf
 import numpy as np
-import keras
+import tf.keras as keras
 from keras.datasets import cifar100
 from keras.preprocessing.image import ImageDataGenerator
 
 
 
-def get_dataloader(batch_size, num, valid, is_train, gpu, seed,label):
+def get_dataloader(batch_size, num, valid, is_train, gpu, seed, label):
 
 
-		# one-hot-encoding for labels
-	if label == 'fine': 
+	# one-hot-encoding for labels
+	if label == 'fine':
 		classes = 100
 		(x_train, y_train), (x_test, y_test) = cifar100.load_data(label)
-	elif label == 'coarse': 
-		classes = 20 
+	elif label == 'coarse':
+		classes = 20
 		(x_train, y_train), (x_test, y_test) = cifar100.load_data(label)
 	else:
 		(x_train, y_train_fine), (x_test, y_test_fine) = cifar100.load_data('fine')
@@ -39,8 +39,8 @@ def get_dataloader(batch_size, num, valid, is_train, gpu, seed,label):
 
 	# one-hot-encoding for labels
 	if label == 'fine': classes = 100
-	elif label == 'coarse': classes = 20 
-	
+	elif label == 'coarse': classes = 20
+
 	y_train = keras.utils.to_categorical(y_train, classes)
 	y_test = keras.utils.to_categorical(y_test, classes)
 
@@ -55,6 +55,6 @@ def get_dataloader(batch_size, num, valid, is_train, gpu, seed,label):
 	partial_y_train = y_train[num_val_samples:]
 
 
-	
+
 
 get_dataloader(32,10,0.2,10,1,42,'fine')
