@@ -1,4 +1,4 @@
-from data_loader import get_data_loader
+from data_loader import get_dataloader
 
 from config import cfg, cfg_from_file, cfg_from_list, cfg_set_log_file
 import argparse
@@ -50,19 +50,16 @@ def main(config):
     """
     Main
     """
-    data_loader = get_dataloader(
-        config.TRAIN.BATCH_SIZE,
-        config.SEED,
+    dataset = get_dataloader(
         config.TRAIN.NUM,
         config.TRAIN.VALID,
-        config.TRAIN.IS_TRAIN,
-        config.GPU,
+        config.TEST.NUM,
         config.LABEL
     )
 
     logger.debug("Calling trainer")
     # instantiate trainer
-    trainer = Trainer(data_loader, config)
+    trainer = Trainer(dataset, config)
 
     logger.debug("Start training")
     # either train

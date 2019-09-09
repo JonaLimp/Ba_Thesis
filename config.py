@@ -132,6 +132,9 @@ __C.NAME = ""
 #
 __C.PRE_PROCESSING = edict()
 
+# Which labels to use
+__C.PRE_PROCESSING.LABEL = 'fine'
+
 #
 # Training options
 #
@@ -182,6 +185,7 @@ __C.TRAIN.SCHEDULE = [0.98]
 # Loss function for reconstruction
 __C.TRAIN.LOSS = "mse"
 
+
 #
 # Model options
 #
@@ -193,6 +197,9 @@ __C.MODEL = edict()
 #
 
 __C.TEST = edict()
+
+# Number of samples to use for testing, if 0 then use full dataset
+__C.TEST.NUM = 0
 
 
 #

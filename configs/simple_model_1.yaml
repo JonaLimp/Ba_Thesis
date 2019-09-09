@@ -5,6 +5,7 @@ NOTE: ''
 RESUME: False
 
 PRE_PROCESSING:
+    LABEL: 'fine'
 
 TRAIN:
     EPOCHS: 100
@@ -15,7 +16,9 @@ TRAIN:
     OPTIM: 'adam'
     WEIGHT_DECAY: 0.
     IS_TRAIN: True
-    LABEL: 'fine'
+
+TEST:
+    NUM: 0
 
 MODEL:
 
