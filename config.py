@@ -113,10 +113,7 @@ __C.GPU = False
 # Random seed
 __C.SEED = 42
 
-# Directory in which data is stored
-__C.DATA_DIR = "./data"
-
-# Directory in which model checkpoitns are saved
+# Directory in which model checkpoints are saved
 __C.CKPT_DIR = "./ckpt"
 
 # Directory in which Tensorboard logs are stored
@@ -131,26 +128,9 @@ __C.RESUME = False
 # Name of the run, if empty then only model parameters define the name
 __C.NAME = ""
 
-# Whether to use bias in convolution layers
-__C.BIAS = False
-
-# Whether to use location of maximum uncertainty or sampling
-__C.AMAX = True
-
-# How many forward passes to use for uncertainty calculation
-__C.FORWARD = 10
-
-# Whether to classify target scene
-__C.CLASSIFY = False
 
 #
 __C.PRE_PROCESSING = edict()
-
-# Whether to convert images to grayscale
-__C.PRE_PROCESSING.GRAY = False
-
-# Resize image to side length (default 1000 = no resize)
-__C.PRE_PROCESSING.RESIZE = 1000
 
 #
 # Training options
@@ -166,8 +146,14 @@ __C.TRAIN.BATCH_SIZE = 32
 # Number of epochs
 __C.TRAIN.EPOCHS = 200
 
+# Number of samples to use for training, if 0 then use full dataset
+__C.TRAIN.NUM = 0
+
 # Size of valudation split
 __C.TRAIN.VALID = 0.1
+
+# Number of samples to use for validation
+__C.TRAIN.VAL_NUM = 0
 
 # Inital learning rate value
 __C.TRAIN.INIT_LR = 3e-4
@@ -179,10 +165,7 @@ __C.TRAIN.LR_PATIENCE = 10
 __C.TRAIN.TRAIN_PATIENCE = 50
 
 # Nesterov momentum value
-__C.TRAIN.MOMENTUM = 0.5
-
-# Number of processes for data loading
-__C.TRAIN.NUM_WORKERS = 4
+__C.TRAIN.MOMENTUM = 0.9
 
 # Whether to shuffle train and validation data
 __C.TRAIN.SHUFFLE = True
@@ -193,85 +176,23 @@ __C.TRAIN.OPTIM = "sgd"
 # Amount of weight decay to use
 __C.TRAIN.WEIGHT_DECAY = 0.0
 
-# Number of samples to use for training, if 0 then use full dataset
-__C.TRAIN.NUM = 0
-
-# Number of samples to use for validation
-__C.TRAIN.VAL_NUM = 0
-
 # Decay factor for learning rate schedule
 __C.TRAIN.SCHEDULE = [0.98]
 
 # Loss function for reconstruction
 __C.TRAIN.LOSS = "mse"
 
-# Factor for KL loss
-__C.TRAIN.KL_FACTOR = 0.01
-
-# Factor for Classification loss
-__C.TRAIN.CL_FACTOR = 0.01
-
-# Fraction of samples to use for training
-__C.TRAIN.FRAC_LABELS = 0.1
-
 #
 # Model options
 #
 __C.MODEL = edict()
 
-# Glimpse Network
-__C.MODEL.GLIMPSE = edict()
-
-# Size of extracted central patch
-__C.MODEL.GLIMPSE.PATCH_SIZE = 16
-
-# Scaling factor for successive patches
-__C.MODEL.GLIMPSE.SCALE = 2.0
-
-# Number of successive patches
-__C.MODEL.GLIMPSE.NUM = 2
-
-# Number of hidden units for location layer
-__C.MODEL.GLIMPSE.LOC = 128
-
-# Number of hidden units for glimpse layer
-__C.MODEL.GLIMPSE.GLIMPSE = [128]
-
-# Whethet to sample the next glimpse locatopn
-__C.MODEL.GLIMPSE.SAMPLE = False
-
-# Whether to use convolutons in glimpse
-__C.MODEL.GLIMPSE.CONV = False
-
-# Core Network
-__C.MODEL.CORE = edict()
-
-# Number of glimpses
-__C.MODEL.CORE.NUM = 6
-
-# Number of hidden units or recurrent module
-__C.MODEL.CORE.HIDDEN = 256
-
-
-__C.MODEL.LATENT = edict()
-
-# Number of hidden units of latent module
-__C.MODEL.LATENT.HIDDEN = 256
-
-# Decoder Network
-__C.MODEL.DECODER = edict()
-
-# Number of hidden units of decoder module
-__C.MODEL.DECODER.HIDDEN = [128]
 
 #
 # Testing options
 #
 
 __C.TEST = edict()
-
-# Number of glimpses during testing
-__C.TEST.NUM = 5
 
 
 #

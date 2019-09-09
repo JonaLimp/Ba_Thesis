@@ -1,38 +1,22 @@
-
-
-DATA_DIR: '/vol/ccnlab-scratch1/kstandvoss/'
 NAME: 'batchnorm_1x1conv'
+NOTE: ''
+
 
 RESUME: False
 
 PRE_PROCESSING:
-    GRAY: True
-    RESIZE: 200
 
 TRAIN:
-    EPOCHS: 300
-    BATCH_SIZE: 64 
-    NUM_WORKERS: 4
-    INIT_LR: 3.e-4 
-    LR_PATIENCE: 10
+    EPOCHS: 100
+    BATCH_SIZE: 64
+    INIT_LR: 1.e-4
     MOMENTUM: 0.9
     TRAIN_PATIENCE: 20
     OPTIM: 'adam'
     WEIGHT_DECAY: 0.
-    IS_TRAIN: False
+    IS_TRAIN: True
 
 MODEL:
-    GLIMPSE:
-        LOC: 256
-        GLIMPSE: 256
-        NUM: 3
-        PATCH_SIZE: 16
-        SAMPLE: True
-        CONV: True
-    CORE:
-        NUM: 8
-        HIDDEN: 512
-    DECODER:  
-        HIDDEN: [64,32,16]
 
-   
+
+

@@ -1,16 +1,14 @@
-import torch
-
-# from vrnn_trainer import Trainer
-from trainer import Trainer
 from data_loader import get_data_loader
 
 from config import cfg, cfg_from_file, cfg_from_list, cfg_set_log_file
 import argparse
-import pprint
 import numpy as np
+import pprint
 import logging
 import logging.config
 import sys
+import tensorflow
+from tensorflow import set_random_seed
 
 import pdb
 
@@ -102,9 +100,8 @@ if __name__ == "__main__":
 
     # fix the random seeds
     np.random.seed(cfg.SEED)
-    torch.manual_seed(cfg.SEED)
 
     if args.gpu:
-        torch.cuda.manual_seed(cfg.SEED)
+        set_random_seed(cfg.SEED)
 
     main(cfg)
