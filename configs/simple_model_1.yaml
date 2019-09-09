@@ -15,6 +15,7 @@ TRAIN:
     OPTIM: 'adam'
     WEIGHT_DECAY: 0.
     IS_TRAIN: True
+    LABEL: 'fine'
 
 MODEL:
 

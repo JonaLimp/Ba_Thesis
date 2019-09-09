@@ -13,12 +13,16 @@ def get_dataloader(batch_size, num, valid, is_train, gpu, seed,label):
 	if label == 'fine': 
 		classes = 100
 		(x_train, y_train), (x_test, y_test) = cifar100.load_data(label)
+		y_train, y_test = one_hot_encoding(y_train,y_test,classes)
 	elif label == 'coarse': 
 		classes = 20 
 		(x_train, y_train), (x_test, y_test) = cifar100.load_data(label)
+		y_train, y_test = one_hot_encoding(y_train,y_test,classes)
 	else:
 		(x_train, y_train_fine), (x_test, y_test_fine) = cifar100.load_data('fine')
 		(x_train, y_train_coarse), (x_test, y_test_coarse) = cifar100.load_data('coarse')
+		y_train,  y_test = one_hot_encoding(y_train_fine,y_test_fine,100)
+		y_train, y_test = one_hot_encoding(y_train_coarse,y_test_coarse,20)
 
 
 
@@ -37,12 +41,7 @@ def get_dataloader(batch_size, num, valid, is_train, gpu, seed,label):
 	x_test /= 255.0
 
 
-	# one-hot-encoding for labels
-	if label == 'fine': classes = 100
-	elif label == 'coarse': classes = 20 
-	
-	y_train = keras.utils.to_categorical(y_train, classes)
-	y_test = keras.utils.to_categorical(y_test, classes)
+
 
 	# number of validation samples
 	num_val_samples = int(x_train.shape[0] * 0.2)
@@ -53,6 +52,12 @@ def get_dataloader(batch_size, num, valid, is_train, gpu, seed,label):
 
 	y_val = y_train[:num_val_samples]
 	partial_y_train = y_train[num_val_samples:]
+
+def one_hot_encoding(y_train,y_test,classes):
+	
+		y_train = keras.utils.to_categorical(y_train, classes)
+		y_test = keras.utils.to_categorical(y_test, classes)
+		return y_train, y_test
 
 
 	
