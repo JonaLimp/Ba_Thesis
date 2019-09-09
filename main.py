@@ -51,15 +51,12 @@ def main(config):
     Main
     """
     data_loader = get_data_loader(
-        config.DATA_DIR,
         config.TRAIN.BATCH_SIZE,
         config.SEED,
         config.TRAIN.NUM,
-        config.TRAIN.VAL_NUM,
+        config.TRAIN.VALID,
         config.TRAIN.IS_TRAIN,
-        config.TRAIN.NUM_WORKERS,
         config.GPU,
-        config.TRAIN.FRAC_LABELS,
     )
 
     logger.debug("Calling trainer")
