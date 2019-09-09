@@ -9,7 +9,7 @@ from keras.applications.vgg16 import VGG16
 
 def create_model(type,img_shape,n_hidden,dropout,label):
 
-	network = VGG16(weights='imagenet', include_top = False,input_shape = (img_shape[1],img_shape[1],img_shape[3]))
+	network = VGG16(weights='imagenet', include_top = False,input_shape = (img_shape[1],img_shape[2],img_shape[3]))
 
 	network = layers.Flatten(network)
 	network = layers.Dense(n_hidden, activation = 'relu')(network)
