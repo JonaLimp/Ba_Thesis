@@ -8,7 +8,17 @@ from keras.preprocessing.image import ImageDataGenerator
 
 def get_dataloader(batch_size, num, valid, is_train, gpu, seed,label):
 
-	(x_train, y_train), (x_test, y_test) = cifar100.load_data(label)
+
+		# one-hot-encoding for labels
+	if label == 'fine': 
+		classes = 100
+		(x_train, y_train), (x_test, y_test) = cifar100.load_data(label)
+	elif label == 'coarse': 
+		classes = 20 
+		(x_train, y_train), (x_test, y_test) = cifar100.load_data(label)
+	else:
+		(x_train, y_train_fine), (x_test, y_test_fine) = cifar100.load_data('fine')
+		(x_train, y_train_coarse), (x_test, y_test_coarse) = cifar100.load_data('coarse')
 
 
 
