@@ -1,4 +1,5 @@
-from data_loader import get_dataloader
+from dataloader import get_dataloader
+from trainer import Trainer
 
 from config import cfg, cfg_from_file, cfg_from_list, cfg_set_log_file
 import argparse
@@ -9,6 +10,7 @@ import logging.config
 import sys
 import tensorflow
 from tensorflow import set_random_seed
+
 
 import pdb
 
@@ -54,15 +56,16 @@ def main(config):
         config.TRAIN.NUM,
         config.TRAIN.VALID,
         config.TEST.NUM,
-        config.LABEL
+        config.PRE_PROCESSING.LABEL
     )
-
+    logger = logging.getLogger(__name__)
     logger.debug("Calling trainer")
     # instantiate trainer
     trainer = Trainer(dataset, config)
 
     logger.debug("Start training")
     # either train
+    print('is_train is: ' , config.TRAIN.IS_TRAIN)
     if config.TRAIN.IS_TRAIN:
         trainer.train()
     # or load a pretrained model and test

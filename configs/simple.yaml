@@ -1,0 +1,36 @@
+NAME: 'test'
+NOTE: 'test'
+
+
+RESUME: False
+
+PRE_PROCESSING:
+    LABEL: 'fine'
+
+MODEL:
+    TYPE: 'VGG16'
+    HIDDEN: 1024
+    DROPOUT: 0.5
+
+TRAIN:
+    IS_TRAIN: True
+    EPOCHS: 20
+    BATCH_SIZE: 64
+    INIT_LR: 1.e-1
+    MOMENTUM: 0.9
+    TRAIN_PATIENCE: 20
+    OPTIM: 'adam'
+    WEIGHT_DECAY: 0.
+    NUM: 100
+    VALID: 0.1
+    SAVE_PATH: 'first_run'
+    LOSS: "categorical_crossentropy"
+
+TEST:
+    NUM: 0
+    LOAD_PATH: 'my_model'
+
+
+
+
+

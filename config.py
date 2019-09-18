@@ -81,7 +81,7 @@ def cfg_from_list(cfg_list):
 
 def cfg_to_str(cfg):
     """Generate string representation of config"""
-    return f"model_{cfg.MODEL.CORE.NUM}_{__C.MODEL.GLIMPSE.PATCH_SIZE}x{__C.MODEL.GLIMPSE.PATCH_SIZE}_{__C.MODEL.GLIMPSE.SCALE}"
+    return f"model_test"
 
 
 def cfg_set_log_file(cfg):
@@ -141,7 +141,7 @@ __C.PRE_PROCESSING.LABEL = 'fine'
 __C.TRAIN = edict()
 
 # Whether to train the model or only test
-__C.TRAIN.IS_TRAIN = True
+__C.TRAIN.IS_TRAIN = False
 
 # Minibatch size
 __C.TRAIN.BATCH_SIZE = 32
@@ -185,11 +185,25 @@ __C.TRAIN.SCHEDULE = [0.98]
 # Loss function for reconstruction
 __C.TRAIN.LOSS = "mse"
 
+__C.TRAIN.VALID_FREQ = 1
 
+__C.TRAIN.SAVE_PATH = '/my_model'
 #
 # Model options
 #
 __C.MODEL = edict()
+
+__C.MODEL.TYPE = 'default'
+
+__C.MODEL.HIDDEN = 1024
+
+__C.MODEL.DROPOUT = 0.5
+
+__C.MODEL.BATCH_SIZE = 32
+
+
+
+
 
 
 #
@@ -200,6 +214,7 @@ __C.TEST = edict()
 
 # Number of samples to use for testing, if 0 then use full dataset
 __C.TEST.NUM = 0
+__C.TEST.LOAD_PATH =''
 
 
 #
