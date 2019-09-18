@@ -29,6 +29,7 @@ clean:
 	rm -f *.log
 	rm -rf *.egg-info
 	rm -rf logs
+	rm -f first_run
 
 distclean:
 	git clean -fxd
