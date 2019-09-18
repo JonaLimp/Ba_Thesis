@@ -133,7 +133,7 @@ __C.NAME = ""
 __C.PRE_PROCESSING = edict()
 
 # Which labels to use
-__C.PRE_PROCESSING.LABEL = 'fine'
+__C.PRE_PROCESSING.LABEL = "fine"
 
 #
 # Training options
@@ -187,23 +187,19 @@ __C.TRAIN.LOSS = "mse"
 
 __C.TRAIN.VALID_FREQ = 1
 
-__C.TRAIN.SAVE_PATH = '/my_model'
+__C.TRAIN.SAVE_PATH = "/my_model"
 #
 # Model options
 #
 __C.MODEL = edict()
 
-__C.MODEL.TYPE = 'default'
+__C.MODEL.TYPE = "default"
 
 __C.MODEL.HIDDEN = 1024
 
 __C.MODEL.DROPOUT = 0.5
 
 __C.MODEL.BATCH_SIZE = 32
-
-
-
-
 
 
 #
@@ -214,7 +210,7 @@ __C.TEST = edict()
 
 # Number of samples to use for testing, if 0 then use full dataset
 __C.TEST.NUM = 0
-__C.TEST.LOAD_PATH =''
+__C.TEST.LOAD_PATH = ""
 
 
 #

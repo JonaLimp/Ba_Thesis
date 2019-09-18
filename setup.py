@@ -18,7 +18,5 @@ setuptools.setup(
     packages=setuptools.find_packages(exclude=["tests"]),
     python_requires=">=3",
     install_requires=install_requires,
-    classifiers=[
-        "Programming Language :: Python :: 3",
-    ],
+    classifiers=["Programming Language :: Python :: 3"],
 )

@@ -56,7 +56,7 @@ def main(config):
         config.TRAIN.NUM,
         config.TRAIN.VALID,
         config.TEST.NUM,
-        config.PRE_PROCESSING.LABEL
+        config.PRE_PROCESSING.LABEL,
     )
     logger = logging.getLogger(__name__)
     logger.debug("Calling trainer")
@@ -65,7 +65,7 @@ def main(config):
 
     logger.debug("Start training")
     # either train
-    print('is_train is: ' , config.TRAIN.IS_TRAIN)
+    print("is_train is: ", config.TRAIN.IS_TRAIN)
     if config.TRAIN.IS_TRAIN:
         trainer.train()
     # or load a pretrained model and test
