@@ -12,14 +12,14 @@ install: ./requirements.txt
 	pip install --upgrade -r ./requirements.txt
 
 black:
-	black code tests setup.py
+	black code setup.py
 
 test:
 	$(PYTHON) code/main.py -c configs/simple.yaml
 	$(PYTHON) -m flake8 code
 
 clean:
-	for dir in ./ tests ; \
+	for dir in code ; \
 	do \
 	    find "$$dir" -name '*.pyc' -print0 \
 	        -or -name '*.egg-info' -print0 \
