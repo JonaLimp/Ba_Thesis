@@ -181,3 +181,5 @@ class Trainer(object):
             y_2_test = np.squeeze(y_2_test, axis=2)
             dict_y_test = {"fine": y_1_test, "coarse": y_2_test}
             score = self.model.evaluate(x=self.x_test, y=dict_y_test)
+            # FIXME score should be used
+            print(score)

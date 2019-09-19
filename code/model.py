@@ -25,6 +25,8 @@ def create_model(type, img_shape, n_hidden, dropout, label):
         out = (out_fine, out_coarse)
 
     input_image = layers.Input(shape=(img_shape[1], img_shape[2], img_shape[3]))
+    # FIXME what to do with variable 'input_image'
+    print(input_image)
 
     model = Model(inputs=pretrained.input, outputs=out)
     print(model.summary())
