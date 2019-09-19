@@ -53,20 +53,16 @@ def cfg_from_list(cfg_list):
         key_list = k.split(".")
         d = __C
         for subkey in key_list[:-1]:
-            assert d.has_key(subkey)
+            assert subkey in d
             d = d[subkey]
         subkey = key_list[-1]
-        assert d.has_key(subkey)
+        assert subkey in d
         try:
             value = literal_eval(v)
         except ValueError:
             # handle the case when v is a string literal
             value = v
-        assert type(value) == type(
-            d[subkey]
-        ), "type {} does not match original type {}".format(
-            type(value), type(d[subkey])
-        )
+        assert isinstance(value, type(d[subkey]))
         d[subkey] = value
 
 
