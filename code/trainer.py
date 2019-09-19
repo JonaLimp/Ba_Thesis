@@ -3,12 +3,7 @@ import logging
 from datetime import datetime
 import logging.config
 import tensorflow as tf
-from tensorflow import set_random_seed
-import tensorflow.keras as keras
 from model import create_model
-
-
-import pdb
 
 
 class Trainer(object):

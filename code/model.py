@@ -1,10 +1,3 @@
-import numpy as np
-import pdb
-import logging
-import logging.config
-import tensorflow as tf
-from tensorflow import set_random_seed
-import tensorflow.keras as keras
 from tensorflow.keras import layers
 from tensorflow.keras.applications.vgg16 import VGG16
 from tensorflow.keras.models import Model

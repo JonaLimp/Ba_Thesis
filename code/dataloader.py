@@ -1,9 +1,6 @@
-import tensorflow as tf
 import numpy as np
 import tensorflow.keras as keras
 from tensorflow.keras.datasets import cifar100
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-import pdb
 
 
 def get_dataloader(num_train=0, valid=0.1, num_test=0, label="fine"):

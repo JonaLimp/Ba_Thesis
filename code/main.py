@@ -8,11 +8,7 @@ import pprint
 import logging
 import logging.config
 import sys
-import tensorflow
 from tensorflow import set_random_seed
-
-
-import pdb
 
 
 def parse_args():

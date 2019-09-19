@@ -3,13 +3,8 @@ Config system
 """
 
 from pathlib import Path
-import numpy as np
 from easydict import EasyDict as edict
 import datetime
-import logging
-import sys
-
-import pdb
 
 
 def _merge_a_into_b(a, b):
