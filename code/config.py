@@ -29,11 +29,7 @@ def _merge_a_into_b(a, b):
 
         # recursively merge dicts
         if type(v) is edict:
-            try:
-                _merge_a_into_b(a[k], b[k])
-            except:
-                print("Error under config key: {}".format(k))
-                raise
+            _merge_a_into_b(a[k], b[k])
         else:
             b[k] = v
 
@@ -63,7 +59,7 @@ def cfg_from_list(cfg_list):
         assert d.has_key(subkey)
         try:
             value = literal_eval(v)
-        except:
+        except ValueError:
             # handle the case when v is a string literal
             value = v
         assert type(value) == type(
