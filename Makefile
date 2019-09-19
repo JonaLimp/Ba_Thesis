@@ -15,7 +15,7 @@ black:
 	black code setup.py
 
 test:
-	$(PYTHON) code/main.py -c configs/simple.yaml
+	$(PYTHON) code/main.py -c configs/test.yaml
 	$(PYTHON) -m flake8 code
 
 clean:
