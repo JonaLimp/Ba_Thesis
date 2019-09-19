@@ -1,5 +1,8 @@
 # Methods for analyzing the internal representations of convolutional neural networks
 
+[![Build Status](https://api.travis-ci.com/johnasduke/Ba_Methods_CNN.svg?token=3x3tywg5VyvqsCs7YyK5&branch=master)](https://travis-ci.com/johnasduke/Ba_Methods_CNN)
+
+
 ## Get started
 
 To get started do:
