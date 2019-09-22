@@ -2,7 +2,7 @@ NAME: 'test'
 NOTE: 'test'
 
 
-RESUME: False
+RESUME: True
 
 PRE_PROCESSING:
     LABEL: 'fine'
@@ -13,21 +13,21 @@ MODEL:
     DROPOUT: 0.5
 
 TRAIN:
-    IS_TRAIN: True
-    EPOCHS: 20
+    IS_TRAIN: False
+    EPOCHS: 200
     BATCH_SIZE: 64
     INIT_LR: 1.e-1
     MOMENTUM: 0.9
     TRAIN_PATIENCE: 20
     OPTIM: 'adam'
     WEIGHT_DECAY: 0.
-    NUM: 100
+    NUM: 0
     VALID: 0.1
     SAVE_PATH: 'first_run'
     LOSS: "categorical_crossentropy"
 
 TEST:
-    NUM: 0
+    NUM: 100
     LOAD_PATH: 'my_model'
 
 

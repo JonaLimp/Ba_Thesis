@@ -5,7 +5,7 @@ NOTE: 'test'
 RESUME: False
 
 PRE_PROCESSING:
-    LABEL: 'fine'
+    LABEL: 'fine and coarse'
 
 MODEL:
     TYPE: 'VGG16'
@@ -14,14 +14,14 @@ MODEL:
 
 TRAIN:
     IS_TRAIN: True
-    EPOCHS: 5
+    EPOCHS: 250
     BATCH_SIZE: 16
     INIT_LR: 1.e-1
     MOMENTUM: 0.9
     TRAIN_PATIENCE: 20
     OPTIM: 'adam'
     WEIGHT_DECAY: 0.
-    NUM: 10
+    NUM: 100
     VALID: 0.1
     SAVE_PATH: 'first_run'
     LOSS: "categorical_crossentropy"
