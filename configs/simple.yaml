@@ -2,10 +2,10 @@ NAME: 'test'
 NOTE: 'test'
 
 
-RESUME: True
+RESUME: False
 
 PRE_PROCESSING:
-    LABEL: 'fine'
+    LABEL: 'fine and kai'
 
 MODEL:
     TYPE: 'VGG16'
@@ -13,7 +13,7 @@ MODEL:
     DROPOUT: 0.5
 
 TRAIN:
-    IS_TRAIN: False
+    IS_TRAIN: True
     EPOCHS: 200
     BATCH_SIZE: 64
     INIT_LR: 1.e-1
@@ -21,9 +21,9 @@ TRAIN:
     TRAIN_PATIENCE: 20
     OPTIM: 'adam'
     WEIGHT_DECAY: 0.
-    NUM: 0
+    NUM: 100
     VALID: 0.1
-    SAVE_PATH: 'first_run'
+    VALID_FREQ: 2
     LOSS: "categorical_crossentropy"
 
 TEST:

@@ -3,8 +3,13 @@ Config system
 """
 
 from pathlib import Path
+import numpy as np
 from easydict import EasyDict as edict
 import datetime
+import logging
+import sys
+
+import pdb
 
 
 def _merge_a_into_b(a, b):
@@ -16,7 +21,7 @@ def _merge_a_into_b(a, b):
 
     for k, v in a.items():
         # a must specify keys that are in b
-        if k not in b:
+        if not k in b:
             raise KeyError("{} is not a valid config key".format(k))
 
         # the types must match, too
@@ -29,7 +34,11 @@ def _merge_a_into_b(a, b):
 
         # recursively merge dicts
         if type(v) is edict:
-            _merge_a_into_b(a[k], b[k])
+            try:
+                _merge_a_into_b(a[k], b[k])
+            except:
+                print("Error under config key: {}".format(k))
+                raise
         else:
             b[k] = v
 
@@ -53,22 +62,26 @@ def cfg_from_list(cfg_list):
         key_list = k.split(".")
         d = __C
         for subkey in key_list[:-1]:
-            assert subkey in d
+            assert d.has_key(subkey)
             d = d[subkey]
         subkey = key_list[-1]
-        assert subkey in d
+        assert d.has_key(subkey)
         try:
             value = literal_eval(v)
-        except ValueError:
+        except:
             # handle the case when v is a string literal
             value = v
-        assert isinstance(value, type(d[subkey]))
+        assert type(value) == type(
+            d[subkey]
+        ), "type {} does not match original type {}".format(
+            type(value), type(d[subkey])
+        )
         d[subkey] = value
 
 
 def cfg_to_str(cfg):
     """Generate string representation of config"""
-    return f"model_test"
+    return f"{cfg.PRE_PROCESSING.LABEL}_LR={cfg.TRAIN.INIT_LR}_HIDDEN_{cfg.MODEL.HIDDEN}"
 
 
 def cfg_set_log_file(cfg):
@@ -77,7 +90,7 @@ def cfg_set_log_file(cfg):
         log_dir = Path(cfg.LOGGING.LOG_DIR)
         if not log_dir.exists():
             log_dir.mkdir(parents=True)
-        log_file = log_dir / (f"{cfg_to_str(cfg)}_{cfg.NAME}-" + cfg.LOGGING.LOG_FILE)
+        log_file = log_dir / (f"{cfg.NAME}-{cfg_to_str(cfg)}-" + cfg.LOGGING.LOG_FILE)
         cfg.LOGGING.handlers.file.filename = str(log_file)
     else:
         pass
@@ -120,7 +133,7 @@ __C.NAME = ""
 __C.PRE_PROCESSING = edict()
 
 # Which labels to use
-__C.PRE_PROCESSING.LABEL = "fine"
+__C.PRE_PROCESSING.LABEL = 'fine'
 
 #
 # Training options
@@ -139,11 +152,8 @@ __C.TRAIN.EPOCHS = 200
 # Number of samples to use for training, if 0 then use full dataset
 __C.TRAIN.NUM = 0
 
-# Size of valudation split
+# Size of validation split
 __C.TRAIN.VALID = 0.1
-
-# Number of samples to use for validation
-__C.TRAIN.VAL_NUM = 0
 
 # Inital learning rate value
 __C.TRAIN.INIT_LR = 3e-4
@@ -174,19 +184,22 @@ __C.TRAIN.LOSS = "mse"
 
 __C.TRAIN.VALID_FREQ = 1
 
-__C.TRAIN.SAVE_PATH = "/my_model"
 #
 # Model options
 #
 __C.MODEL = edict()
 
-__C.MODEL.TYPE = "default"
+__C.MODEL.TYPE = 'default'
 
 __C.MODEL.HIDDEN = 1024
 
 __C.MODEL.DROPOUT = 0.5
 
 __C.MODEL.BATCH_SIZE = 32
+
+
+
+
 
 
 #
@@ -197,7 +210,7 @@ __C.TEST = edict()
 
 # Number of samples to use for testing, if 0 then use full dataset
 __C.TEST.NUM = 0
-__C.TEST.LOAD_PATH = ""
+__C.TEST.LOAD_PATH =''
 
 
 #

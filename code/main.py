@@ -8,7 +8,11 @@ import pprint
 import logging
 import logging.config
 import sys
+import tensorflow
 from tensorflow import set_random_seed
+
+
+import pdb
 
 
 def parse_args():
@@ -52,8 +56,11 @@ def main(config):
         config.TRAIN.NUM,
         config.TRAIN.VALID,
         config.TEST.NUM,
-        config.PRE_PROCESSING.LABEL,
+        config.PRE_PROCESSING.LABEL
     )
+
+    cfg_set_log_file(cfg)
+    logging.config.dictConfig(cfg.LOGGING)
     logger = logging.getLogger(__name__)
     logger.debug("Calling trainer")
     # instantiate trainer
@@ -61,7 +68,7 @@ def main(config):
 
     logger.debug("Start training")
     # either train
-    print("is_train is: ", config.TRAIN.IS_TRAIN)
+    print('is_train is: ' , config.TRAIN.IS_TRAIN)
     if config.TRAIN.IS_TRAIN:
         trainer.train()
     # or load a pretrained model and test

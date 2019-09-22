@@ -6,6 +6,7 @@ import tensorflow as tf
 from tensorflow import set_random_seed
 import tensorflow.keras as keras
 from model import create_model
+from pathlib import Path
 
 
 
@@ -55,17 +56,21 @@ class Trainer(object):
         self.epochs = config.TRAIN.EPOCHS
         self.lr = config.TRAIN.INIT_LR
         self.val_freq = config.TRAIN.VALID_FREQ
-        self.train_patience = config.TRAIN.VALID_PATIENCE
+        self.train_patience = config.TRAIN.TRAIN_PATIENCE
 
         #misc params
-        self.logdir = "logs/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.file_writer = tf.summary.FileWriter(self.logdir + "/metrics")
+
+        self.model_name = f'{config.NAME}_{config.PRE_PROCESSING.LABEL}_LR={config.TRAIN.INIT_LR}_HIDDEN_{config.MODEL.HIDDEN}'
+        self.tensor_dir = Path(config.TENSORBOARD_DIR)
+        if not self.tensor_dir.exists():
+            self.tensor_dir.mkdir()
+        self.file_writer = tf.summary.FileWriter(self.tensor_dir / self.model_name)
 
         self.counter = 0
-        self.best_valid_loss = 0
+        self.best_val_loss = 0
         self.is_best = True 
         self.save_dir = Path(config.CKPT_DIR)
-        self.save_path = self.save_dir / config.TRAIN.SAVE_PATH
+        self.save_path = self.save_dir / self.model_name 
         #self.file_writer.set_as_default()
             
 
@@ -85,8 +90,8 @@ class Trainer(object):
             # fit single-label classifier
             if self.label == 'fine' or self.label == 'coarse':
                 history = self.model.fit(self.x_train,self.y_train, batch_size=self.batchsize, validation_data = (self.x_val,self.y_val),
-                shuffle=True, epochs=1, 
-                # initial_epoch=epoch, 
+                shuffle=True, epochs=epoch+1, 
+                initial_epoch=epoch, 
                 validation_freq=self.val_freq)
 
             #fit multi-label classifier
@@ -103,8 +108,8 @@ class Trainer(object):
                 #pdb.set_trace()
                 
                 history = self.model.fit(self.x_train,dict_y_train, batch_size=self.batchsize, validation_data = (self.x_val,dict_y_val),
-                shuffle=True, epochs=1, 
-                # initial_epoch=epoch, 
+                shuffle=True, epochs=epoch+1, 
+                initial_epoch=epoch, 
                 validation_freq=self.val_freq)
                 #pdb.set_trace()
             #print(history.history.keys())
@@ -124,27 +129,33 @@ class Trainer(object):
             #for single-label classifer
             if self.label == 'fine' or self.label == 'coarse':
 
-                self.log_scalar('validation accuracy', history.history['val_acc'][0],epoch)
                 self.log_scalar('accuracy', history.history['acc'][0], epoch)
                 self.log_scalar('loss', history.history['loss'][0], epoch)
-                self.log_scalar('validation loss', history.history['val_loss'][0], epoch)
+
+                if not ((epoch+1) % self.val_freq):
+                    self.log_scalar('validation accuracy', history.history['val_acc'][0],epoch)
+                    self.log_scalar('validation loss', history.history['val_loss'][0], epoch)
             
             #for multi-label classifier
             else:
 
-                self.log_scalar('validation accuracy fine', history.history['val_fine_acc'][0],epoch)
                 self.log_scalar('accuracy', history.history['fine_acc'][0], epoch)
-
-                self.log_scalar('validation accuracy coarse', history.history['val_coarse_acc'][0],epoch)
                 self.log_scalar('accuracy', history.history['coarse_acc'][0], epoch)
-
                 self.log_scalar('loss', history.history['loss'][0], epoch)
-                self.log_scalar('validation loss', history.history['val_loss'][0], epoch)
+
+                if not ((epoch+1) % self.val_freq):
+                    self.log_scalar('validation accuracy coarse', history.history['val_coarse_acc'][0],epoch)
+                    self.log_scalar('validation accuracy fine', history.history['val_fine_acc'][0],epoch)
+                    self.log_scalar('validation loss', history.history['val_loss'][0], epoch)
             
             self.file_writer.flush()
-        
-            is_best = self.best_valid_loss < history.history['val_loss']
-            self.best_valid_loss = min(valid_loss, self.best_valid_loss)
+            
+            #pdb.set_trace()
+            if not ((epoch+1) % self.val_freq):
+                is_best = self.best_val_loss < history.history['val_loss'][0]
+                self.best_val_loss = min(history.history['val_loss'][0], self.best_val_loss)
+            else:
+                is_best = False
             
             self.save_checkpoint(history, is_best)
             if not self.check_improvement(is_best):
