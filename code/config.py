@@ -3,13 +3,8 @@ Config system
 """
 
 from pathlib import Path
-import numpy as np
 from easydict import EasyDict as edict
 import datetime
-import logging
-import sys
-
-import pdb
 
 
 def _merge_a_into_b(a, b):
@@ -21,7 +16,7 @@ def _merge_a_into_b(a, b):
 
     for k, v in a.items():
         # a must specify keys that are in b
-        if not k in b:
+        if k not in b:
             raise KeyError("{} is not a valid config key".format(k))
 
         # the types must match, too
@@ -34,11 +29,7 @@ def _merge_a_into_b(a, b):
 
         # recursively merge dicts
         if type(v) is edict:
-            try:
-                _merge_a_into_b(a[k], b[k])
-            except:
-                print("Error under config key: {}".format(k))
-                raise
+            _merge_a_into_b(a[k], b[k])
         else:
             b[k] = v
 
@@ -62,20 +53,16 @@ def cfg_from_list(cfg_list):
         key_list = k.split(".")
         d = __C
         for subkey in key_list[:-1]:
-            assert d.has_key(subkey)
+            assert subkey in d
             d = d[subkey]
         subkey = key_list[-1]
-        assert d.has_key(subkey)
+        assert subkey in d
         try:
             value = literal_eval(v)
-        except:
+        except ValueError:
             # handle the case when v is a string literal
             value = v
-        assert type(value) == type(
-            d[subkey]
-        ), "type {} does not match original type {}".format(
-            type(value), type(d[subkey])
-        )
+        assert isinstance(value, type(d[subkey]))
         d[subkey] = value
 
 
@@ -133,7 +120,7 @@ __C.NAME = ""
 __C.PRE_PROCESSING = edict()
 
 # Which labels to use
-__C.PRE_PROCESSING.LABEL = 'fine'
+__C.PRE_PROCESSING.LABEL = "fine"
 
 #
 # Training options
@@ -187,23 +174,19 @@ __C.TRAIN.LOSS = "mse"
 
 __C.TRAIN.VALID_FREQ = 1
 
-__C.TRAIN.SAVE_PATH = '/my_model'
+__C.TRAIN.SAVE_PATH = "/my_model"
 #
 # Model options
 #
 __C.MODEL = edict()
 
-__C.MODEL.TYPE = 'default'
+__C.MODEL.TYPE = "default"
 
 __C.MODEL.HIDDEN = 1024
 
 __C.MODEL.DROPOUT = 0.5
 
 __C.MODEL.BATCH_SIZE = 32
-
-
-
-
 
 
 #
@@ -214,7 +197,7 @@ __C.TEST = edict()
 
 # Number of samples to use for testing, if 0 then use full dataset
 __C.TEST.NUM = 0
-__C.TEST.LOAD_PATH =''
+__C.TEST.LOAD_PATH = ""
 
 
 #

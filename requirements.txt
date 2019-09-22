@@ -1,0 +1,7 @@
+easydict~=1.9
+tensorflow==1.14
+pyyaml~=5.1
+black==19.3b0
+flake8~=3.7.7
+flake8-bugbear==19.3.0
+pip-tools~=3.7.0
