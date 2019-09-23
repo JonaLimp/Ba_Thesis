@@ -79,8 +79,8 @@ def main(config):
 if __name__ == "__main__":
     args = parse_args()
 
-    logger.info("Called with args:")
-    logger.info(args)
+    print("Called with args:")
+    print(args)
 
     if args.cfg_file is not None:
         cfg_from_file(args.cfg_file)
