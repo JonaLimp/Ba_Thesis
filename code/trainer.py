@@ -40,6 +40,7 @@ class Trainer(object):
         self.label = config.PRE_PROCESSING.LABEL
         shape = dataset['train'][0].shape
         
+        self.model_name = f'{config.NAME}_{config.PRE_PROCESSING.LABEL}_LR={config.TRAIN.INIT_LR}_HIDDEN_{config.MODEL.HIDDEN}'
         self.save_dir = Path(config.CKPT_DIR)
         self.save_path = self.save_dir / self.model_name
         
@@ -72,7 +73,6 @@ class Trainer(object):
 
         #misc params
 
-        self.model_name = f'{config.NAME}_{config.PRE_PROCESSING.LABEL}_LR={config.TRAIN.INIT_LR}_HIDDEN_{config.MODEL.HIDDEN}'
         self.tensor_dir = Path(config.TENSORBOARD_DIR) / self.model_name
         self.logger.info(f"[*] Saving tensorboard logs to {self.tensor_dir}")
         if not self.tensor_dir.exists():
