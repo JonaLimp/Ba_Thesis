@@ -8,15 +8,18 @@ import tensorflow.keras as keras
 from tensorflow.keras import layers
 from tensorflow.keras.applications.vgg16 import VGG16
 from tensorflow.keras.models import Model
+import logging
 
 def create_model(type,img_shape,n_hidden,dropout,label):
 
+	logger = logging.getLogger(__name__)
+
 	pretrained = VGG16(weights='imagenet', include_top = False, input_shape = (img_shape[1],img_shape[2],img_shape[3]))
-	
+
 	network = layers.Flatten()(pretrained.output)
 	network = layers.Dense(n_hidden, activation = 'relu')(network)
 	network = layers.Dropout(dropout)(network)
-	
+
 	if label=='fine':
 		out = layers.Dense(100,activation = 'softmax')(network)
 	elif label=='coarse':
@@ -29,6 +32,6 @@ def create_model(type,img_shape,n_hidden,dropout,label):
 	input_image = layers.Input(shape = (img_shape[1],img_shape[2],img_shape[3]))
 
 	model = Model(inputs=pretrained.input, outputs=out)
-	print (model.summary()) 
+	logger.info(model.summary())
 
 	return model

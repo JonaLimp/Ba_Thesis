@@ -224,7 +224,7 @@ __C.LOGGING.LOG_DIR = "./logs"
 __C.LOGGING.LOG_FILE = f'{datetime.datetime.now().strftime("%Y-%m-%d:%H:%M")}.log'
 
 __C.LOGGING.version = 1.0
-__C.LOGGING.disable_existing_loggers = True
+__C.LOGGING.disable_existing_loggers = False
 
 __C.LOGGING.loggers = edict()
 __C.LOGGING.loggers[""] = edict()

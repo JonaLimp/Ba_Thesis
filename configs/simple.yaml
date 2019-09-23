@@ -1,11 +1,11 @@
-NAME: 'test'
-NOTE: 'test'
+NAME: 'high_lr'
+NOTE: 'This run has a high learning rate'
 
 
 RESUME: False
 
 PRE_PROCESSING:
-    LABEL: 'fine and kai'
+    LABEL: 'fine'
 
 MODEL:
     TYPE: 'VGG16'
@@ -21,7 +21,7 @@ TRAIN:
     TRAIN_PATIENCE: 20
     OPTIM: 'adam'
     WEIGHT_DECAY: 0.
-    NUM: 100
+    NUM: 0
     VALID: 0.1
     VALID_FREQ: 2
     LOSS: "categorical_crossentropy"

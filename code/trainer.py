@@ -29,7 +29,9 @@ class Trainer(object):
 
         self.logger = logging.getLogger(__name__)
         logging.getLogger("PIL.PngImagePlugin").setLevel(logging.WARNING)
-        
+
+        tf.logging.set_verbosity(tf.logging.DEBUG)
+
         #data sets and model params
         self.x_train, self.y_train = dataset['train']
         self.x_test, self.y_test = dataset['test']
@@ -39,7 +41,7 @@ class Trainer(object):
         shape = dataset['train'][0].shape
 
         self.model = create_model(config.MODEL.TYPE, shape, config.MODEL.HIDDEN, config.MODEL.DROPOUT, config.PRE_PROCESSING.LABEL)
-        
+
         if self.label =='coarse' or self.label == 'fine':
             self.model.compile(optimizer=config.TRAIN.OPTIM,
               loss= config.TRAIN.LOSS,
@@ -50,7 +52,7 @@ class Trainer(object):
               loss= loss_dict,
               metrics=['accuracy' ,'top_k_categorical_accuracy'])
 
-              
+
         #train params
         self.batchsize = config.MODEL.BATCH_SIZE
         self.epochs = config.TRAIN.EPOCHS
@@ -61,18 +63,26 @@ class Trainer(object):
         #misc params
 
         self.model_name = f'{config.NAME}_{config.PRE_PROCESSING.LABEL}_LR={config.TRAIN.INIT_LR}_HIDDEN_{config.MODEL.HIDDEN}'
-        self.tensor_dir = Path(config.TENSORBOARD_DIR)
+        self.tensor_dir = Path(config.TENSORBOARD_DIR) / self.model_name
+        self.logger.info(f"[*] Saving tensorboard logs to {self.tensor_dir}")
         if not self.tensor_dir.exists():
-            self.tensor_dir.mkdir()
-        self.file_writer = tf.summary.FileWriter(self.tensor_dir / self.model_name)
+            self.tensor_dir.mkdir(parents=True)
+        else:
+            if config.RESUME or not config.TRAIN.IS_TRAIN:
+                pass
+            else:
+                for x in self.tensor_dir.iterdir():
+                    if not x.is_dir():
+                        x.unlink()
+        self.file_writer = tf.summary.FileWriter(self.tensor_dir)
 
         self.counter = 0
         self.best_val_loss = 0
-        self.is_best = True 
+        self.is_best = True
         self.save_dir = Path(config.CKPT_DIR)
-        self.save_path = self.save_dir / self.model_name 
+        self.save_path = self.save_dir / self.model_name
         #self.file_writer.set_as_default()
-            
+
 
 
     def train(self):
@@ -84,14 +94,14 @@ class Trainer(object):
         layer_norms = np.zeros([self.epochs,len(self.model.layers)])
 
         for epoch in range(self.epochs):
-            
-            print('epoch: #',epoch)
-            
+
+            logger.info('epoch: #',epoch)
+
             # fit single-label classifier
             if self.label == 'fine' or self.label == 'coarse':
                 history = self.model.fit(self.x_train,self.y_train, batch_size=self.batchsize, validation_data = (self.x_val,self.y_val),
-                shuffle=True, epochs=epoch+1, 
-                initial_epoch=epoch, 
+                shuffle=True, epochs=epoch+1,
+                initial_epoch=epoch,
                 validation_freq=self.val_freq)
 
             #fit multi-label classifier
@@ -106,10 +116,10 @@ class Trainer(object):
                 y_2_val = np.squeeze(y_2_val,axis=2)
                 dict_y_val ={'fine': y_1_val,'coarse':y_2_val}
                 #pdb.set_trace()
-                
+
                 history = self.model.fit(self.x_train,dict_y_train, batch_size=self.batchsize, validation_data = (self.x_val,dict_y_val),
-                shuffle=True, epochs=epoch+1, 
-                initial_epoch=epoch, 
+                shuffle=True, epochs=epoch+1,
+                initial_epoch=epoch,
                 validation_freq=self.val_freq)
                 #pdb.set_trace()
             #print(history.history.keys())
@@ -119,13 +129,13 @@ class Trainer(object):
                 if len(layer.get_weights()) > 0:
                     layer_norms[epoch,i] = np.mean(layer.get_weights()[0])
                     self.log_scalar('layer mean/layer {}'.format(i), layer_norms[epoch,i], epoch )
-            
+
 
             #check for change in layer weights
             largest_change = layer_norms[epoch - 1] - layer_norms[epoch]
             for i in range(len(largest_change)):
                 self.log_scalar('change of weights/layer {}'.format(i),largest_change[i],epoch)
-            
+
             #for single-label classifer
             if self.label == 'fine' or self.label == 'coarse':
 
@@ -135,7 +145,7 @@ class Trainer(object):
                 if not ((epoch+1) % self.val_freq):
                     self.log_scalar('validation accuracy', history.history['val_acc'][0],epoch)
                     self.log_scalar('validation loss', history.history['val_loss'][0], epoch)
-            
+
             #for multi-label classifier
             else:
 
@@ -147,26 +157,26 @@ class Trainer(object):
                     self.log_scalar('validation accuracy coarse', history.history['val_coarse_acc'][0],epoch)
                     self.log_scalar('validation accuracy fine', history.history['val_fine_acc'][0],epoch)
                     self.log_scalar('validation loss', history.history['val_loss'][0], epoch)
-            
+
             self.file_writer.flush()
-            
+
             #pdb.set_trace()
             if not ((epoch+1) % self.val_freq):
                 is_best = self.best_val_loss < history.history['val_loss'][0]
                 self.best_val_loss = min(history.history['val_loss'][0], self.best_val_loss)
             else:
                 is_best = False
-            
+
             self.save_checkpoint(history, is_best)
             if not self.check_improvement(is_best):
                 return
-            
+
 
 
 
 
     def test(self):
-        
+
         if self.label == 'coarse' or self.label == 'fine':
             score = self.model.evaluate(x=self.x_test, y=self.y_test)
 
@@ -181,7 +191,7 @@ class Trainer(object):
 
     def save_checkpoint(self, history, is_best):
 
-        if is_best: 
+        if is_best:
             self.model.save(Path(str(self.save_path) + '_best_val_loss'))
 
         self.model.save(self.save_path)
@@ -189,14 +199,14 @@ class Trainer(object):
 
 
     def check_improvement(self, is_best):
-    # check for improvement    
+    # check for improvement
         if not is_best:
             self.counter += 1
         if self.counter > self.train_patience:
             self.logger.info("[!] No improvement in a while, stopping training.")
             return False
         return True
-    
+
     def log_scalar(self, tag, value, step):
         """Log a scalar variable.
                 Parameter

@@ -68,7 +68,7 @@ def main(config):
 
     logger.debug("Start training")
     # either train
-    print('is_train is: ' , config.TRAIN.IS_TRAIN)
+    logger.info('is_train is: ' , config.TRAIN.IS_TRAIN)
     if config.TRAIN.IS_TRAIN:
         trainer.train()
     # or load a pretrained model and test
@@ -79,8 +79,8 @@ def main(config):
 if __name__ == "__main__":
     args = parse_args()
 
-    print("Called with args:")
-    print(args)
+    logger.info("Called with args:")
+    logger.info(args)
 
     if args.cfg_file is not None:
         cfg_from_file(args.cfg_file)
