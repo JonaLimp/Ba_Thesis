@@ -1,11 +1,11 @@
-NAME: 'high_lr'
+NAME: 'test'
 NOTE: 'This run has a high learning rate'
 
 
-RESUME: False
+RESUME: True
 
 PRE_PROCESSING:
-    LABEL: 'fine'
+    LABEL: 'fine and kai'
 
 MODEL:
     TYPE: 'VGG16'
@@ -28,7 +28,7 @@ TRAIN:
 
 TEST:
     NUM: 100
-    LOAD_PATH: 'my_model'
+
 
 
 

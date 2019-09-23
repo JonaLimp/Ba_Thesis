@@ -39,8 +39,14 @@ class Trainer(object):
 
         self.label = config.PRE_PROCESSING.LABEL
         shape = dataset['train'][0].shape
-
-        self.model = create_model(config.MODEL.TYPE, shape, config.MODEL.HIDDEN, config.MODEL.DROPOUT, config.PRE_PROCESSING.LABEL)
+        
+        self.save_dir = Path(config.CKPT_DIR)
+        self.save_path = self.save_dir / self.model_name
+        
+        if not config.RESUME: 
+            self.model = create_model(config.MODEL.TYPE, shape, config.MODEL.HIDDEN, config.MODEL.DROPOUT, config.PRE_PROCESSING.LABEL)
+        else:
+            self.model = tf.keras.models.load_model(self.save_path)
 
         if config.TRAIN.OPTIM == 'sgd':
             optimizer = tf.keras.optimizers.SGD(lr = config.TRAIN.INIT_LR, momentum = config.TRAIN.MOMENTUM)
@@ -83,8 +89,7 @@ class Trainer(object):
         self.counter = 0
         self.best_val_loss = 0
         self.is_best = True
-        self.save_dir = Path(config.CKPT_DIR)
-        self.save_path = self.save_dir / self.model_name
+
         #self.file_writer.set_as_default()
 
 
