@@ -104,7 +104,7 @@ class Trainer(object):
 
         for epoch in range(self.epochs):
 
-            logger.info('epoch: #',epoch)
+            self.logger.info(f'epoch: {epoch}')
 
             # fit single-label classifier
             if self.label == 'fine' or self.label == 'coarse':
