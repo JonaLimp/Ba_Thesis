@@ -68,7 +68,7 @@ def main(config):
 
     logger.debug("Start training")
     # either train
-    logger.info('is_train is: ' , config.TRAIN.IS_TRAIN)
+    logger.info(f'is_train is: {config.TRAIN.IS_TRAIN}')
     if config.TRAIN.IS_TRAIN:
         trainer.train()
     # or load a pretrained model and test
