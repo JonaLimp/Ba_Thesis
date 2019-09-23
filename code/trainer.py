@@ -39,14 +39,17 @@ class Trainer(object):
         shape = dataset['train'][0].shape
 
         self.model = create_model(config.MODEL.TYPE, shape, config.MODEL.HIDDEN, config.MODEL.DROPOUT, config.PRE_PROCESSING.LABEL)
-        
+        if config.TRAIN.OPTIM == 'sgd':
+            optimizer = tf.keras.optimizers.SGD(lr = config.TRAIN.INIT_LR, momentum = config.TRAIN.MOMENTUM)
+        else:
+            optimizer = tf.keras.optimizers.Adam(lr = config.TRAIN.INIT_LR)
         if self.label =='coarse' or self.label == 'fine':
-            self.model.compile(optimizer=config.TRAIN.OPTIM,
+            self.model.compile(optimizer=optimizer,
               loss= config.TRAIN.LOSS,
               metrics=['accuracy' ,'top_k_categorical_accuracy'])
         else:
             loss_dict = {'fine': config.TRAIN.LOSS, 'coarse' : config.TRAIN.LOSS}
-            self.model.compile(optimizer=config.TRAIN.OPTIM,
+            self.model.compile(optimizer=optimizer,
               loss= loss_dict,
               metrics=['accuracy' ,'top_k_categorical_accuracy'])
 
