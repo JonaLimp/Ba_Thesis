@@ -1,5 +1,5 @@
 NAME: 'fewer'
-NOTE: 'Test run from_scratch fewer hidden'
+NOTE: 'Test run from_scratch fewer hidden, higher lr, higher patience'
 
 
 RESUME: False
@@ -14,11 +14,11 @@ MODEL:
 
 TRAIN:
     IS_TRAIN: True
-    EPOCHS: 200
+    EPOCHS: 500
     BATCH_SIZE: 64
     INIT_LR: 3.e-4
     MOMENTUM: 0.9
-    TRAIN_PATIENCE: 20
+    TRAIN_PATIENCE: 50
     OPTIM: 'adam'
     WEIGHT_DECAY: 0.
     NUM: 0

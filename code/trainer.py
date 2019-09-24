@@ -27,10 +27,10 @@ class Trainer(object):
         :param dataset  : (Object) dataset
         """
 
+        #logger parmas
         self.logger = logging.getLogger(__name__)
         logging.getLogger("PIL.PngImagePlugin").setLevel(logging.WARNING)
-
-        tf.logging.set_verbosity(tf.logging.DEBUG)
+        tf.logging.set_verbosity(tf.logging.INFO)
 
         #data sets and model params
         self.x_train, self.y_train = dataset['train']
@@ -189,7 +189,7 @@ class Trainer(object):
 
 
 
-    def test(self):
+    def test(self, deconv = False):
 
         if self.label == 'coarse' or self.label == 'fine':
             score = self.model.evaluate(x=self.x_test, y=self.y_test)
@@ -202,6 +202,9 @@ class Trainer(object):
             score = self.model.evaluate(x=self.x_test,y=dict_y_test)
 
 
+    def deconv(self):
+
+        pass
 
     def save_checkpoint(self, history, is_best):
 

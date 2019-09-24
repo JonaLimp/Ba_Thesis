@@ -73,7 +73,7 @@ def main(config):
         trainer.train()
     # or load a pretrained model and test
     else:
-        trainer.test()
+        trainer.test(config.TEST.DECONV)
 
 
 if __name__ == "__main__":
