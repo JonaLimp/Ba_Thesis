@@ -1,5 +1,5 @@
-NAME: 'fewer'
-NOTE: 'Test run from_scratch fewer hidden'
+NAME: 'low_lr'
+NOTE: 'This run has a low learning rate'
 
 
 RESUME: False
@@ -8,15 +8,15 @@ PRE_PROCESSING:
     LABEL: 'fine'
 
 MODEL:
-    TYPE: 'from_scratch'
-    HIDDEN: 256
-    DROPOUT: 0.4
+    TYPE: 'VGG16'
+    HIDDEN: 1024
+    DROPOUT: 0.5
 
 TRAIN:
     IS_TRAIN: True
     EPOCHS: 200
     BATCH_SIZE: 64
-    INIT_LR: 3.e-4
+    INIT_LR: 1.e-2
     MOMENTUM: 0.9
     TRAIN_PATIENCE: 20
     OPTIM: 'adam'
@@ -28,7 +28,7 @@ TRAIN:
 
 TEST:
     NUM: 100
-
+    LOAD_PATH: 'my_model'
 
 
 

@@ -71,10 +71,14 @@ class Trainer(object):
         self.val_freq = config.TRAIN.VALID_FREQ
         self.train_patience = config.TRAIN.TRAIN_PATIENCE
 
-        #misc params
+        #tensorboard params
 
         self.tensor_dir = Path(config.TENSORBOARD_DIR) / self.model_name
         self.logger.info(f"[*] Saving tensorboard logs to {self.tensor_dir}")
+        
+        #overwrite existing tensorboards
+        #if they are not retrained
+
         if not self.tensor_dir.exists():
             self.tensor_dir.mkdir(parents=True)
         else:
@@ -86,8 +90,9 @@ class Trainer(object):
                         x.unlink()
         self.file_writer = tf.summary.FileWriter(self.tensor_dir)
 
+        #improvement params
         self.counter = 0
-        self.best_val_loss = 0
+        self.best_val_loss = np.inf
         self.is_best = True
 
         #self.file_writer.set_as_default()
@@ -101,7 +106,7 @@ class Trainer(object):
         """
 
         layer_norms = np.zeros([self.epochs,len(self.model.layers)])
-
+        is_best = False
         for epoch in range(self.epochs):
 
             self.logger.info(f'epoch: {epoch}')
@@ -145,7 +150,7 @@ class Trainer(object):
             for i in range(len(largest_change)):
                 self.log_scalar('change of weights/layer {}'.format(i),largest_change[i],epoch)
 
-            #for single-label classifer
+            #tensorboard scalars for single-label classifer
             if self.label == 'fine' or self.label == 'coarse':
 
                 self.log_scalar('accuracy', history.history['acc'][0], epoch)
@@ -155,7 +160,7 @@ class Trainer(object):
                     self.log_scalar('validation accuracy', history.history['val_acc'][0],epoch)
                     self.log_scalar('validation loss', history.history['val_loss'][0], epoch)
 
-            #for multi-label classifier
+            #tensorboard scalars for multi-label classifier
             else:
 
                 self.log_scalar('accuracy', history.history['fine_acc'][0], epoch)
@@ -171,14 +176,14 @@ class Trainer(object):
 
             #pdb.set_trace()
             if not ((epoch+1) % self.val_freq):
-                is_best = self.best_val_loss < history.history['val_loss'][0]
+                is_best = self.best_val_loss > history.history['val_loss'][0]
                 self.best_val_loss = min(history.history['val_loss'][0], self.best_val_loss)
-            else:
-                is_best = False
 
             self.save_checkpoint(history, is_best)
             if not self.check_improvement(is_best):
                 return
+
+
 
 
 
@@ -211,6 +216,8 @@ class Trainer(object):
     # check for improvement
         if not is_best:
             self.counter += 1
+        else:
+            self.counter = 0
         if self.counter > self.train_patience:
             self.logger.info("[!] No improvement in a while, stopping training.")
             return False
