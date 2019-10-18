@@ -1,5 +1,5 @@
-NAME: 'test'
-NOTE: 'test'
+NAME: 'from_scratch'
+NOTE: 'Test run from_scratch'
 
 
 RESUME: False
@@ -11,11 +11,12 @@ MODEL:
     TYPE: 'from_scratch'
     HIDDEN: 1024
     DROPOUT: 0.5
+    NEURON_ARR: [32,32,64,64,128,128]
 
 TRAIN:
     IS_TRAIN: True
     EPOCHS: 5
-    BATCH_SIZE: 16
+    BATCH_SIZE: 64
     INIT_LR: 1.e-1
     MOMENTUM: 0.9
     TRAIN_PATIENCE: 20
@@ -23,12 +24,13 @@ TRAIN:
     WEIGHT_DECAY: 0.
     NUM: 100
     VALID: 0.1
+    VALID_FREQ: 2
     LOSS: "categorical_crossentropy"
-    VALID_FREQ: 1
+
 
 TEST:
-    NUM: 0
-    
+    NUM: 100
+
 
 
 
