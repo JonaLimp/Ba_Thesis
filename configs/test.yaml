@@ -5,16 +5,17 @@ NOTE: 'test'
 RESUME: False
 
 PRE_PROCESSING:
-    LABEL: 'fine'
+    LABEL: 'fine and coarse'
 
 MODEL:
     TYPE: 'from_scratch'
-    HIDDEN: 1024
+    HIDDEN: 256
     DROPOUT: 0.5
+    NEURON_ARR: [32,32,64,64,128,128]
 
 TRAIN:
     IS_TRAIN: True
-    EPOCHS: 5
+    EPOCHS: 1
     BATCH_SIZE: 16
     INIT_LR: 1.e-1
     MOMENTUM: 0.9

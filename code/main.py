@@ -56,7 +56,7 @@ def main(config):
         config.TRAIN.NUM,
         config.TRAIN.VALID,
         config.TEST.NUM,
-        config.PRE_PROCESSING.LABEL
+        config.PRE_PROCESSING.LABEL,
     )
 
     cfg_set_log_file(cfg)
@@ -68,7 +68,7 @@ def main(config):
 
     logger.debug("Start training")
     # either train
-    logger.info(f'is_train is: {config.TRAIN.IS_TRAIN}')
+    logger.info(f"is_train is: {config.TRAIN.IS_TRAIN}")
     if config.TRAIN.IS_TRAIN:
         trainer.train()
     # or load a pretrained model and test
