@@ -31,6 +31,7 @@ def create_model(type, img_shape, n_hidden, dropout, label, arr_channels):
     # use from scratch model
     # uses a model generator to create layerstacks consisting of
     # conV-, MaxPooling-, and Dropout layer
+
     elif type == "from_scratch":
         visible = layers.Input(shape=(img_shape[1], img_shape[2], img_shape[3]))
 
@@ -71,10 +72,11 @@ def create_model(type, img_shape, n_hidden, dropout, label, arr_channels):
 
     input_image = layers.Input(shape=(img_shape[1], img_shape[2], img_shape[3]))
 
-    if type == "fine":
+    if type == "VGG16":
         model = Model(inputs=pretrained.input, outputs=out)
     elif type == "from_scratch":
         model = Model(inputs=visible, outputs=out)
+    
     logger.info(model.summary())
 
     return model
