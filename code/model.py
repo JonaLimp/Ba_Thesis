@@ -85,6 +85,7 @@ def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_chan
 
     if type == "VGG16":
         model = Model(inputs=vgg16.input, outputs=out)
+
     elif type == "from_scratch":
         model = Model(inputs=visible, outputs=out)
     
