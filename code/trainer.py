@@ -142,7 +142,8 @@ class Trainer(object):
             for i,layer in enumerate(self.model.layers):
                 if len(layer.get_weights()) > 0:
                     layer_norms[epoch,i] = np.mean(layer.get_weights()[0])
-                    self.log_scalar('layer mean/layer {}'.format(i), layer_norms[epoch,i], epoch )
+                    if layer_norms[epoch,i] != 0:
+                        self.log_scalar('layer mean/layer {}'.format(i), layer_norms[epoch,i], epoch )
 
 
             #check for change in layer weights

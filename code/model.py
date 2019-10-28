@@ -65,7 +65,7 @@ def create_model(type,img_shape,n_hidden,dropout,label):
 
 	input_image = layers.Input(shape = (img_shape[1],img_shape[2],img_shape[3]))
 
-	if type == 'fine':
+	if type == 'VGG16':
 		model = Model(inputs=pretrained.input, outputs=out)
 	elif type == 'from_scratch':
 		model = Model(inputs = visible, outputs=out)
