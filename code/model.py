@@ -36,7 +36,8 @@ def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_chan
 
         network = layers.Flatten()(vgg16.output)
         network = layers.Dense(n_hidden, activation="relu")(network)
-        network = layers.Dropout(dropout)(network)
+        
+        #network = layers.Dropout(dropout)(network)
 
     
     # use from scratch model
