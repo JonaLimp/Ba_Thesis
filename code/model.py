@@ -38,9 +38,11 @@ def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_chan
         network = layers.Dense(n_hidden, activation="relu")(network)
         network = layers.Dropout(dropout)(network)
 
+    
     # use from scratch model
     # uses a model generator to create layerstacks consisting of
     # conV-, MaxPooling-, and Dropout layer
+
     elif type == "from_scratch":
         visible = layers.Input(shape=(img_shape[1], img_shape[2], img_shape[3]))
 
@@ -85,6 +87,7 @@ def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_chan
         model = Model(inputs=vgg16.input, outputs=out)
     elif type == "from_scratch":
         model = Model(inputs=visible, outputs=out)
+    
     logger.info(model.summary())
 
     return model

@@ -182,7 +182,7 @@ class Trainer(object):
                 self.log_scalar(
                     "change of weights/layer {}".format(i), largest_change[i], epoch
                 )
-            pdb.set_trace()
+
             #tensorboard scalars for single-label classifer
             if self.label == 'fine' or self.label == 'coarse':
 
