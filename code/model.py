@@ -11,20 +11,30 @@ from tensorflow.keras.models import Model
 import logging
 
 
-def create_model(type, img_shape, n_hidden, dropout, label, arr_channels):
+def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_channels):
 
     logger = logging.getLogger(__name__)
 
     # use VGG16 model for training
     if type == "VGG16":
 
-        pretrained = VGG16(
-            weights="imagenet",
-            include_top=False,
-            input_shape=(img_shape[1], img_shape[2], img_shape[3]),
-        )
+        #either use pretrained model
+        if pretrained == True:
+            vgg16 = VGG16(
+                weights="imagenet",
+                include_top=False,
+                input_shape=(img_shape[1], img_shape[2], img_shape[3]),
+            )
 
-        network = layers.Flatten()(pretrained.output)
+        #or initialize with random weights
+        else:
+            vgg16 = VGG16(
+                weights = None,
+                include_top=False,
+                input_shape=(img_shape[1], img_shape[2], img_shape[3]),
+                )
+
+        network = layers.Flatten()(vgg16.output)
         network = layers.Dense(n_hidden, activation="relu")(network)
         network = layers.Dropout(dropout)(network)
 
@@ -71,8 +81,8 @@ def create_model(type, img_shape, n_hidden, dropout, label, arr_channels):
 
     input_image = layers.Input(shape=(img_shape[1], img_shape[2], img_shape[3]))
 
-    if type == "fine":
-        model = Model(inputs=pretrained.input, outputs=out)
+    if type == "VGG16":
+        model = Model(inputs=vgg16.input, outputs=out)
     elif type == "from_scratch":
         model = Model(inputs=visible, outputs=out)
     logger.info(model.summary())

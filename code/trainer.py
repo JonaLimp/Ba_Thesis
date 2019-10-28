@@ -46,6 +46,7 @@ class Trainer(object):
         if not config.RESUME:
             self.model = create_model(
                 config.MODEL.TYPE,
+                config.MODEL.PRETRAINED,
                 shape,
                 config.MODEL.HIDDEN,
                 config.MODEL.DROPOUT,
@@ -76,7 +77,7 @@ class Trainer(object):
             )
 
         # train params
-        self.batchsize = config.MODEL.BATCH_SIZE
+        self.batchsize = config.TRAIN.BATCH_SIZE
         self.epochs = config.TRAIN.EPOCHS
         self.lr = config.TRAIN.INIT_LR
         self.val_freq = config.TRAIN.VALID_FREQ
@@ -163,14 +164,15 @@ class Trainer(object):
                 )
 
             # print(history.history.keys())
-
+            
             # check mean of layer weights
             for i, layer in enumerate(self.model.layers):
                 if len(layer.get_weights()) > 0:
 
                     layer_norms[epoch, i] = np.mean(layer.get_weights()[0])
-                    self.log_scalar(
-                        "layer mean/layer {}".format(i), layer_norms[epoch, i], epoch
+                    if isinstance(layer, tf.keras.layers.Conv2D):
+                        self.log_scalar(
+                            "layer mean/layer {}".format(i), layer_norms[epoch, i], epoch
                     )
 
 
@@ -180,7 +182,7 @@ class Trainer(object):
                 self.log_scalar(
                     "change of weights/layer {}".format(i), largest_change[i], epoch
                 )
-
+            pdb.set_trace()
             #tensorboard scalars for single-label classifer
             if self.label == 'fine' or self.label == 'coarse':
 
