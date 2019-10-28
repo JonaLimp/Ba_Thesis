@@ -16,6 +16,7 @@ black:
 
 test:
 	$(PYTHON) code/main.py -c configs/test.yaml
+	$(PYTHON) code/parametrization.py configs/test.yaml configs/params.yaml
 	$(PYTHON) -m flake8 code
 
 clean:

@@ -8,13 +8,14 @@ PRE_PROCESSING:
     LABEL: 'fine and coarse'
 
 MODEL:
-    TYPE: 'VGG16'
-    HIDDEN: 1024
+    TYPE: 'from_scratch'
+    HIDDEN: 256
     DROPOUT: 0.5
+    NEURON_ARR: [32,32,64,64,128,128]
 
 TRAIN:
     IS_TRAIN: True
-    EPOCHS: 250
+    EPOCHS: 1
     BATCH_SIZE: 16
     INIT_LR: 1.e-1
     MOMENTUM: 0.9
@@ -23,12 +24,12 @@ TRAIN:
     WEIGHT_DECAY: 0.
     NUM: 100
     VALID: 0.1
-    SAVE_PATH: 'first_run'
     LOSS: "categorical_crossentropy"
+    VALID_FREQ: 1
 
 TEST:
     NUM: 0
-    LOAD_PATH: 'my_model'
+    
 
 
 
