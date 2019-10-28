@@ -9,21 +9,17 @@ PRE_PROCESSING:
 
 MODEL:
     TYPE: 'VGG16'
-<<<<<<< HEAD
-=======
-    PRETRAINED: False
->>>>>>> 7d6ce3e92570b0c7d827397816080819045ba900
-    HIDDEN: 256
+    PRETRAINED: True
+    HIDDEN: [2048,2048]
     DROPOUT: 0.5
     NEURON_ARR: [32,64,128,128]
+    VGG16_top: True
+
 
 TRAIN:
     IS_TRAIN: True
-<<<<<<< HEAD
+
     EPOCHS: 10
-=======
-    EPOCHS: 5
->>>>>>> 7d6ce3e92570b0c7d827397816080819045ba900
     BATCH_SIZE: 16
     INIT_LR: 1.e-1
     MOMENTUM: 0.9
