@@ -1,0 +1,36 @@
+NAME: 'less_layers #07'
+NOTE: 'less lr'
+
+
+RESUME: False
+
+PRE_PROCESSING:
+    LABEL: 'fine'
+
+MODEL:
+    TYPE: 'from_scratch'
+    HIDDEN: 256
+    DROPOUT: 0.4
+
+TRAIN:
+    IS_TRAIN: True
+    EPOCHS: 500
+    BATCH_SIZE: 64
+    INIT_LR: 1.e-2
+    MOMENTUM: 0.9
+    TRAIN_PATIENCE: 50
+    OPTIM: 'adam'
+    WEIGHT_DECAY: 0.
+    NUM: 0
+    VALID: 0.1
+    VALID_FREQ: 1
+    LOSS: "categorical_crossentropy"
+
+TEST:
+    NUM: 100
+    LOAD_PATH: 'my_model'
+
+
+
+
+
