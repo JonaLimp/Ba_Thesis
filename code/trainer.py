@@ -52,6 +52,7 @@ class Trainer(object):
                 config.MODEL.DROPOUT,
                 config.PRE_PROCESSING.LABEL,
                 config.MODEL.NEURON_ARR,
+                config.MODEL.VGG16_top
             )
         else:
             self.model = tf.keras.models.load_model(self.save_path)

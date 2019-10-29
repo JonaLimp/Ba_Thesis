@@ -194,13 +194,15 @@ __C.MODEL = edict()
 
 __C.MODEL.TYPE = "default"
 
-__C.MODEL.HIDDEN = 1024
+__C.MODEL.HIDDEN = [1024]
 
 __C.MODEL.DROPOUT = 0.5
 
 __C.MODEL.NEURON_ARR = [32]
 
 __C.MODEL.PRETRAINED = False
+
+__C.MODEL.VGG16_top = False
 
 
 #

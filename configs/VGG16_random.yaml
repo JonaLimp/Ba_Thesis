@@ -1,41 +1,33 @@
-NAME: 'test'
-NOTE: 'test'
+NAME: 'VGG16_random_weights'
+NOTE: 'first run '
 
 
 RESUME: False
 
 PRE_PROCESSING:
-    LABEL: 'coarse and fine'
+    LABEL: 'fine'
 
 MODEL:
     TYPE: 'VGG16'
-    PRETRAINED: True
+    PRETRAINED: False
     HIDDEN: [2048,2048]
     DROPOUT: 0.5
     NEURON_ARR: [32,64,128,128]
     VGG16_top: False
-
-
 TRAIN:
     IS_TRAIN: True
-
-    EPOCHS: 200
-    BATCH_SIZE: 16
+    EPOCHS: 500
+    BATCH_SIZE: 32
     INIT_LR: 3.e-2
     MOMENTUM: 0.9
-    TRAIN_PATIENCE: 10
+    TRAIN_PATIENCE: 50
     OPTIM: 'adam'
     WEIGHT_DECAY: 0.
-    NUM: 100
+    NUM: 0
     VALID: 0.1
-    LOSS: "categorical_crossentropy"
     VALID_FREQ: 1
+    LOSS: "categorical_crossentropy"
 
 TEST:
-    NUM: 0
-    
-
-
-
-
-
+    NUM: 100
+    LOAD_PATH: 'my_model'

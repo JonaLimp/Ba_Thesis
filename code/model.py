@@ -11,10 +11,11 @@ from tensorflow.keras.models import Model
 import logging
 
 
-def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_channels):
+def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_channels,VGG16_top):
 
     logger = logging.getLogger(__name__)
 
+   
     # use VGG16 model for training
     if type == "VGG16":
 
@@ -22,7 +23,7 @@ def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_chan
         if pretrained == True:
             vgg16 = VGG16(
                 weights="imagenet",
-                include_top=False,
+                include_top=VGG16_top,
                 input_shape=(img_shape[1], img_shape[2], img_shape[3]),
             )
 
@@ -30,13 +31,17 @@ def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_chan
         else:
             vgg16 = VGG16(
                 weights = None,
-                include_top=False,
+                include_top=VGG16_top,
                 input_shape=(img_shape[1], img_shape[2], img_shape[3]),
                 )
 
         network = layers.Flatten()(vgg16.output)
-        network = layers.Dense(n_hidden, activation="relu")(network)
-        
+
+
+        for i in range(len(n_hidden)):
+            network = layers.Dense(n_hidden[i], activation="relu")(network)
+
+
         #network = layers.Dropout(dropout)(network)
 
     
@@ -68,8 +73,12 @@ def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_chan
         network = layers.Dropout(dropout)(network)
 
         network = layers.Flatten()(network)
-        network = layers.Dense(n_hidden, activation="relu")(network)
-        network = layers.Dropout(dropout)(network)
+
+        #add FC-layers according to n_hidden
+        for i in range(len(n_hidden)):
+            network = layers.Dense(n_hidden[i], activation="relu")(network)
+
+        #network = layers.Dropout(dropout)(network)
 
 
     # implement classifier according to labeltype 
