@@ -7,6 +7,7 @@ from tensorflow import set_random_seed
 import tensorflow.keras as keras
 from model import create_model
 from pathlib import Path
+import yaml
 
 
 import pdb
@@ -16,7 +17,7 @@ class Trainer(object):
     """
     """
 
-    def __init__(self, dataset, config):
+    def __init__(self, dataset, config, cnfg):
         """
         Construct a new Trainer instance.
         Params
@@ -38,9 +39,11 @@ class Trainer(object):
         self.label = config.PRE_PROCESSING.LABEL
         shape = dataset["train"][0].shape
 
-        self.model_name = f"{config.NAME}_{config.NOTE}_{config.PRE_PROCESSING.LABEL}_LR={config.TRAIN.INIT_LR}_HIDDEN_{config.MODEL.HIDDEN}"
+        self.model_name = f"{config.NAME}_{config.NOTE}_{config.PRE_PROCESSING.LABEL}_LR={config.TRAIN.INIT_LR}_HIDDEN_{config.MODEL.HIDDEN}_BS={config.TRAIN.BATCH_SIZE}"
         self.save_dir = Path(config.CKPT_DIR)
         self.save_path = self.save_dir / self.model_name
+        file = open(config.YAML_DIR + "/" + self.model_name, "w")
+        yaml.dump(cnfg, file)
 
         # create new model or load pretrained
         if not config.RESUME:

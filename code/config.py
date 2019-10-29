@@ -121,6 +121,9 @@ __C.CKPT_DIR = "./ckpt"
 # Directory in which Tensorboard logs are stored
 __C.TENSORBOARD_DIR = "./tensorboard"
 
+#Directory for yamls
+__C.YAML_DIR = "./yamls"
+
 # Whether to use Tensorboard
 __C.USE_TENSORBOARD = True
 

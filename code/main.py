@@ -10,6 +10,8 @@ import logging.config
 import sys
 import tensorflow
 from tensorflow import set_random_seed
+from easydict import EasyDict as edict
+import yaml
 
 
 import pdb
@@ -48,10 +50,11 @@ def parse_args():
     return args
 
 
-def main(config):
+def main(config,cnfg):
     """
     Main
     """
+
     dataset = get_dataloader(
         config.TRAIN.NUM,
         config.TRAIN.VALID,
@@ -64,7 +67,7 @@ def main(config):
     logger = logging.getLogger(__name__)
     logger.debug("Calling trainer")
     # instantiate trainer
-    trainer = Trainer(dataset, config)
+    trainer = Trainer(dataset, config, cnfg)
 
     logger.debug("Start training")
     # either train
@@ -84,6 +87,9 @@ if __name__ == "__main__":
 
     if args.cfg_file is not None:
         cfg_from_file(args.cfg_file)
+        with open(args.cfg_file, "r") as f:
+            cnfg = yaml.load(f)
+
     if args.set_cfgs is not None:
         cfg_from_list(args.set_cfgs)
 
@@ -105,4 +111,4 @@ if __name__ == "__main__":
     if args.gpu:
         set_random_seed(cfg.SEED)
 
-    main(cfg)
+    main(cfg,cnfg)
