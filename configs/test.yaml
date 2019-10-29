@@ -1,4 +1,4 @@
-NAME: 'test'
+NAME: 'tester'
 NOTE: 'test'
 
 
@@ -13,7 +13,7 @@ MODEL:
     HIDDEN: [2048,2048]
     DROPOUT: 0.5
     NEURON_ARR: [32,64,128,128]
-    VGG16_top: True
+    VGG16_top: False
 
 
 TRAIN:
