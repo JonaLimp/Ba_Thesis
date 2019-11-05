@@ -5,12 +5,13 @@ NOTE: 'test'
 RESUME: False
 
 PRE_PROCESSING:
-    LABEL: 'fine'
+    LABEL: 'fine and coarse'
 
 MODEL:
-    TYPE: 'from_scratch'
+    TYPE: 'VGG16'
     PRETRAINED: True
     HIDDEN: [2048,2048]
+    DROPOUT_ARR: [1,0]
     DROPOUT: 0.5
     NEURON_ARR: [32,64,128,128]
     VGG16_top: False
@@ -27,7 +28,7 @@ TRAIN:
     TRAIN_PATIENCE: 10
     OPTIM: 'adam'
     WEIGHT_DECAY: 0.
-    NUM: 1000
+    NUM: 100
     VALID: 0.1
     LOSS: "categorical_crossentropy"
     VALID_FREQ: 1

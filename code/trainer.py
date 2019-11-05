@@ -117,11 +117,24 @@ class Trainer(object):
 
         # self.file_writer.set_as_default()
 
+
+
     def train(self):
 
         """
         Train the model on the training set.
         """
+        
+        if self.label == "fine and coarse":
+            y_1_train, y_2_train = np.split(self.y_train, [100], 1)
+            y_1_train = np.squeeze(y_1_train, axis=2)
+            y_2_train = np.squeeze(y_2_train, axis=2)
+            dict_y_train = {"fine": y_1_train, "coarse": y_2_train}
+
+            y_1_val, y_2_val = np.split(self.y_val, [100], 1)
+            y_1_val = np.squeeze(y_1_val, axis=2)
+            y_2_val = np.squeeze(y_2_val, axis=2)
+            dict_y_val = {"fine": y_1_val, "coarse": y_2_val}
 
 
         layer_norms = np.zeros([self.epochs,len(self.model.layers)])
@@ -147,16 +160,6 @@ class Trainer(object):
 
             # fit multi-label classifier
             else:
-                y_1_train, y_2_train = np.split(self.y_train, [100], 1)
-                y_1_train = np.squeeze(y_1_train, axis=2)
-                y_2_train = np.squeeze(y_2_train, axis=2)
-                dict_y_train = {"fine": y_1_train, "coarse": y_2_train}
-
-                y_1_val, y_2_val = np.split(self.y_val, [100], 1)
-                y_1_val = np.squeeze(y_1_val, axis=2)
-                y_2_val = np.squeeze(y_2_val, axis=2)
-                dict_y_val = {"fine": y_1_val, "coarse": y_2_val}
-                
 
                 history = self.model.fit(
                     self.x_train,
