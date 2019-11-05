@@ -277,9 +277,11 @@ class Trainer(object):
         self.model.save(self.save_path)
 
     def check_improvement(self, is_best):
+
         # check for improvement
         if not is_best:
             self.counter += 1
+
         else:
             self.counter = 0
         if self.counter > self.train_patience:

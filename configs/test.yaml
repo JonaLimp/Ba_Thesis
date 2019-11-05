@@ -26,7 +26,7 @@ TRAIN:
     TRAIN_PATIENCE: 20
     OPTIM: 'adam'
     WEIGHT_DECAY: 0.
-    NUM: 100
+    NUM: 1000
     VALID: 0.1
     LOSS: "categorical_crossentropy"
     VALID_FREQ: 1
