@@ -11,10 +11,11 @@ from tensorflow.keras.models import Model
 import logging
 
 
-def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_channels,VGG16_top):
+def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_channels, VGG16_top, use_gen, dropout_arr):
 
     logger = logging.getLogger(__name__)
 
+   
     # use VGG16 model for training
     if type == "VGG16":
 
@@ -36,8 +37,12 @@ def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_chan
 
         network = layers.Flatten()(vgg16.output)
 
+
         for i in range(len(n_hidden)):
             network = layers.Dense(n_hidden[i], activation="relu")(network)
+            if dropout_arr[i]:
+                network = layers.Dropout(dropout)(network)
+
 
         #network = layers.Dropout(dropout)(network)
 
@@ -47,33 +52,47 @@ def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_chan
     # conV-, MaxPooling-, and Dropout layer
 
     elif type == "from_scratch":
-        visible = layers.Input(shape=(img_shape[1], img_shape[2], img_shape[3]))
+        if use_gen == True:
 
-        network = layers.Conv2D(
-            arr_channels[0], kernel_size=3, padding="same", activation="relu"
-        )(visible)
-        network = layers.MaxPooling2D(pool_size=(2, 2))(network)
-        network = layers.Dropout(dropout)(network)
-
-        for i in range(len(arr_channels) - 2):
+            visible = layers.Input(shape=(img_shape[1], img_shape[2], img_shape[3]))
 
             network = layers.Conv2D(
-                arr_channels[i + 1], kernel_size=3, padding="same", activation="relu"
-            )(network)
-            #pdb.set_trace()
+                arr_channels[0], kernel_size=3, padding="same", activation="relu"
+            )(visible)
             network = layers.MaxPooling2D(pool_size=(2, 2))(network)
             network = layers.Dropout(dropout)(network)
 
-        network = layers.Conv2D(
-            arr_channels[-1], kernel_size=3, padding="same", activation="relu"
-        )(network)
-        network = layers.Dropout(dropout)(network)
+            for i in range(len(arr_channels) - 2):
 
-        network = layers.Flatten()(network)
+                network = layers.Conv2D(
+                    arr_channels[i + 1], kernel_size=3, padding="same", activation="relu"
+                )(network)
+                #pdb.set_trace()
+                network = layers.MaxPooling2D(pool_size=(2, 2))(network)
+                network = layers.Dropout(dropout)(network)
 
-        #add FC-layers according to n_hidden
-        for i in range(len(n_hidden)):
-            network = layers.Dense(n_hidden[i], activation="relu")(network)
+            network = layers.Conv2D(
+                arr_channels[-1], kernel_size=3, padding="same", activation="relu"
+            )(network)
+            network = layers.Dropout(dropout)(network)
+
+            network = layers.Flatten()(network)
+
+            #add FC-layers according to n_hidden
+            for i in range(len(n_hidden)):
+                network = layers.Dense(n_hidden[i], activation="relu")(network)
+
+        #add model architecture here:
+        else:
+
+            model = VGG16(
+                weights = None,
+                include_top = VGG16_top,
+                input_shape=(img_shape[1], img_shape[2], img_shape[3]))
+
+            for layer in model.layers:
+                print(layer)
+            
 
         #network = layers.Dropout(dropout)(network)
 
