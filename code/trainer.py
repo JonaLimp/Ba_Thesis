@@ -55,7 +55,9 @@ class Trainer(object):
                 config.MODEL.DROPOUT,
                 config.PRE_PROCESSING.LABEL,
                 config.MODEL.NEURON_ARR,
-                config.MODEL.VGG16_top
+                config.MODEL.VGG16_top,
+                config.MODEL.USE_GEN,
+                config.MODEL.DROPOUT_ARR
             )
         else:
             self.model = tf.keras.models.load_model(self.save_path)
@@ -280,6 +282,7 @@ class Trainer(object):
         # check for improvement
         if not is_best:
             self.counter += 1
+
         else:
             self.counter = 0
         if self.counter > self.train_patience:

@@ -1,5 +1,5 @@
 NAME: 'VGG16_random_weights'
-NOTE: 'first run '
+NOTE: 'VGG16 original architecture, just three Layer with DROPOUT'
 
 
 RESUME: False
@@ -10,15 +10,16 @@ PRE_PROCESSING:
 MODEL:
     TYPE: 'VGG16'
     PRETRAINED: False
-    HIDDEN: [2048,2048]
+    HIDDEN: [2048,2048,1024]
+    DROPOUT_ARR: [1,1,0]
     DROPOUT: 0.5
     NEURON_ARR: [32,64,128,128]
     VGG16_top: False
 TRAIN:
     IS_TRAIN: True
     EPOCHS: 500
-    BATCH_SIZE: 32
-    INIT_LR: 3.e-2
+    BATCH_SIZE: 64
+    INIT_LR: 1.e-4
     MOMENTUM: 0.9
     TRAIN_PATIENCE: 50
     OPTIM: 'adam'

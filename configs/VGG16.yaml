@@ -1,5 +1,5 @@
 NAME: 'VGG16'
-NOTE: 'original architecture, lower BS'
+NOTE: 'original architecture with fine label, two FC with DO '
 
 
 RESUME: False
@@ -10,7 +10,8 @@ PRE_PROCESSING:
 MODEL:
     TYPE: 'VGG16'
     PRETRAINED: False
-    HIDDEN: [4096,4096,1024]
+    HIDDEN: [2048,1024]
+    DROPOUT_ARR: [1,0]
     DROPOUT: 0.5
     NEURON_ARR: [32,64,128,128]
     VGG16_top: False
@@ -19,8 +20,8 @@ MODEL:
 TRAIN:
     IS_TRAIN: True
     EPOCHS: 500
-    BATCH_SIZE: 32
-    INIT_LR: 1.e-4
+    BATCH_SIZE: 64
+    INIT_LR: 3.e-2
     MOMENTUM: 0.9
     TRAIN_PATIENCE: 50
     OPTIM: 'adam'
