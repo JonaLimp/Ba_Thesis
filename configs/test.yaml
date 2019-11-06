@@ -5,7 +5,8 @@ NOTE: 'test'
 RESUME: False
 
 PRE_PROCESSING:
-    LABEL: 'fine and coarse'
+    LABEL: 'fine'
+    DATA_AUGMENTATION: True
 
 MODEL:
     TYPE: 'VGG16'

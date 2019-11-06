@@ -140,6 +140,9 @@ __C.PRE_PROCESSING = edict()
 # Which labels to use
 __C.PRE_PROCESSING.LABEL = "fine"
 
+#Whether to use data augmentation
+__C.PRE_PROCESSING.DATA_AUGMENTATION = False
+
 #
 # Training options
 #

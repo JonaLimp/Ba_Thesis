@@ -7,6 +7,7 @@ from tensorflow import set_random_seed
 import tensorflow.keras as keras
 from model import create_model
 from pathlib import Path
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import yaml
 
 
@@ -88,6 +89,7 @@ class Trainer(object):
         self.lr = config.TRAIN.INIT_LR
         self.val_freq = config.TRAIN.VALID_FREQ
         self.train_patience = config.TRAIN.TRAIN_PATIENCE
+        self.data_aug = config.PRE_PROCESSING.DATA_AUGMENTATION
 
 
         #tensorboard params
@@ -125,6 +127,9 @@ class Trainer(object):
         Train the model on the training set.
         """
         
+
+        # prepare dataset for hierachical labelling 
+
         if self.label == "fine and coarse":
             y_1_train, y_2_train = np.split(self.y_train, [100], 1)
             y_1_train = np.squeeze(y_1_train, axis=2)
@@ -136,6 +141,20 @@ class Trainer(object):
             y_2_val = np.squeeze(y_2_val, axis=2)
             dict_y_val = {"fine": y_1_val, "coarse": y_2_val}
 
+        if self.data_aug == True:
+
+            datagen = ImageDataGenerator(
+                featurewise_center=True,
+                featurewise_std_normalization=True,
+                rotation_range=20,
+                width_shift_range=0.2,
+                height_shift_range=0.2,
+                horizontal_flip=True)
+
+            datagen.fit(self.x_train)
+
+
+        # help params 
 
         layer_norms = np.zeros([self.epochs,len(self.model.layers)])
         is_best = False
@@ -147,16 +166,32 @@ class Trainer(object):
 
             # fit single-label classifier
             if self.label == "fine" or self.label == "coarse":
-                history = self.model.fit(
-                    self.x_train,
-                    self.y_train,
-                    batch_size=self.batchsize,
-                    validation_data=(self.x_val, self.y_val),
-                    shuffle=True,
-                    epochs=epoch + 1,
-                    initial_epoch=epoch,
-                    validation_freq=self.val_freq,
-                )
+
+                if self.data_aug == False:
+
+                    history = self.model.fit(
+                        self.x_train,
+                        self.y_train,
+                        batch_size=self.batchsize,
+                        validation_data=(self.x_val, self.y_val),
+                        shuffle=True,
+                        epochs=epoch + 1,
+                        initial_epoch=epoch,
+                        validation_freq=self.val_freq,
+                    )
+
+                else:
+
+
+                    history = self.model.fit_generator(datagen.flow(self.x_train, self.y_train, batch_size=self.batchsize),
+                        steps_per_epoch=None,
+                        epochs= epoch + 1, 
+                        validation_data=(self.x_val, self.y_val), 
+                        validation_freq=self.val_freq,
+                        shuffle=True,
+                        initial_epoch=epoch)
+                    print('use data_aug')
+
 
             # fit multi-label classifier
             else:
@@ -256,7 +291,6 @@ class Trainer(object):
 
     def test(self, deconv = False):
 
-
         if self.label == "coarse" or self.label == "fine":
             score = self.model.evaluate(x=self.x_test, y=self.y_test)
 
@@ -281,6 +315,7 @@ class Trainer(object):
 
         self.model.save(self.save_path)
 
+
     def check_improvement(self, is_best):
 
         # check for improvement
@@ -293,6 +328,7 @@ class Trainer(object):
             self.logger.info("[!] No improvement in a while, stopping training.")
             return False
         return True
+
 
     def log_scalar(self, tag, value, step):
         """Log a scalar variable.
