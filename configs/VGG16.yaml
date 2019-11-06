@@ -1,11 +1,11 @@
 NAME: 'VGG16'
-NOTE: 'original architecture with fine label, two FC with DO '
+NOTE: 'original architecture with fine and coarse label, two FC with DO '
 
 
 RESUME: False
 
 PRE_PROCESSING:
-    LABEL: 'fine'
+    LABEL: 'fine and coarse'
 
 MODEL:
     TYPE: 'VGG16'
