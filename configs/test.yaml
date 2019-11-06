@@ -6,11 +6,13 @@ RESUME: False
 
 PRE_PROCESSING:
     LABEL: 'fine'
+    DATA_AUGMENTATION: True
 
 MODEL:
-    TYPE: 'from_scratch'
+    TYPE: 'VGG16'
     PRETRAINED: True
     HIDDEN: [2048,2048]
+    DROPOUT_ARR: [1,0]
     DROPOUT: 0.5
     NEURON_ARR: [32,64,128,128]
     VGG16_top: False
