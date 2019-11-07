@@ -7,7 +7,7 @@ import logging.config
 import pdb
 
 
-def get_dataloader(num_train=0, valid=0.1, num_test=0, label="fine"):
+def get_dataloader(num_train=0, valid=0.1, num_test=0, label="fine",data_aug=False):
 
     # one-hot-encoding for labels
     if label == "fine":
