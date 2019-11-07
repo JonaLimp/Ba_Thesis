@@ -1,18 +1,19 @@
 NAME: 'VGG16'
-NOTE: 'original architecture with fine and coarse label, two FC with DO '
+NOTE: 'original architecture, three FC with DO,compare with augmented '
 
 
 RESUME: False
 
 PRE_PROCESSING:
-    LABEL: 'fine and coarse'
+    LABEL: 'fine'
+    DATA_AUGMENTATION: False
 
 
 MODEL:
     TYPE: 'VGG16'
     PRETRAINED: False
-    HIDDEN: [2048,1024]
-    DROPOUT_ARR: [1,0]
+    HIDDEN: [4096,4096,1024]
+    DROPOUT_ARR: [1,1,0]
     DROPOUT: 0.5
     NEURON_ARR: [32,64,128,128]
     VGG16_top: False
@@ -20,9 +21,9 @@ MODEL:
 
 TRAIN:
     IS_TRAIN: True
-    EPOCHS: 500
-    BATCH_SIZE: 64
-    INIT_LR: 3.e-2
+    EPOCHS: 50
+    BATCH_SIZE: 63
+    INIT_LR: 1.e-4
     MOMENTUM: 0.9
     TRAIN_PATIENCE: 50
     OPTIM: 'adam'
