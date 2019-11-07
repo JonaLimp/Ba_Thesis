@@ -189,7 +189,7 @@ class Trainer(object):
                     history = self.model.fit_generator(datagen.flow(self.x_train, self.y_train, batch_size=self.batchsize),
                         steps_per_epoch=None,
                         epochs= epoch + 1, 
-                        validation_data=(_val_datagen.flow(self.x_train, self.y_train, batch_size=self.batchsize)), 
+                        validation_data=(val_datagen.flow(self.x_train, self.y_train, batch_size=self.batchsize)), 
                         validation_freq=self.val_freq,
                         shuffle=True,
                         initial_epoch=epoch)
