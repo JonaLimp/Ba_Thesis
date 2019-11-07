@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow.keras as keras
 from tensorflow.keras.datasets import cifar100
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import logging.config
 import pdb
 
 
@@ -40,7 +41,7 @@ def get_dataloader(num_train=0, valid=0.1, num_test=0, label="fine"):
 
 
     #rescale only if Dataset is not augmented
-    
+
     if config.DATA_PREPROCESSING.DATA_AUGMENTATION == False:
         
         x_train = x_train.astype("float32")
