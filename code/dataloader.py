@@ -43,6 +43,7 @@ def get_dataloader(num_train=0, valid=0.1, num_test=0, label="fine",data_aug=Fal
 
     if data_aug== False:
         
+        
         x_train = x_train.astype("float32")
         x_test = x_test.astype("float32")
 
