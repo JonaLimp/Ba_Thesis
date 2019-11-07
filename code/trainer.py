@@ -153,6 +153,9 @@ class Trainer(object):
 
             datagen.fit(self.x_train)
 
+            val_datagen = ImageDataGenerator(rescale=1./255)
+            val_datagen.fit(self.test)
+
 
         # help params 
 
@@ -186,7 +189,7 @@ class Trainer(object):
                     history = self.model.fit_generator(datagen.flow(self.x_train, self.y_train, batch_size=self.batchsize),
                         steps_per_epoch=None,
                         epochs= epoch + 1, 
-                        validation_data=(self.x_val, self.y_val), 
+                        validation_data=(test_datagen, self.y_val), 
                         validation_freq=self.val_freq,
                         shuffle=True,
                         initial_epoch=epoch)
