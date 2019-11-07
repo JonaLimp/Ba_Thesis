@@ -154,7 +154,7 @@ class Trainer(object):
             datagen.fit(self.x_train)
 
             val_datagen = ImageDataGenerator(rescale=1./255)
-            val_datagen.fit(self.test)
+            val_datagen.fit(self.x_val)
 
 
         # help params 
