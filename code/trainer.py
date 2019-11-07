@@ -89,8 +89,8 @@ class Trainer(object):
         self.lr = config.TRAIN.INIT_LR
         self.val_freq = config.TRAIN.VALID_FREQ
         self.train_patience = config.TRAIN.TRAIN_PATIENCE
-        self.data_aug = config.PRE_PROCESSING.DATA_AUGMENTATION
 
+        self.data_aug = config.PRE_PROCESSING.DATA_AUGMENTATION
 
         #tensorboard params
 
