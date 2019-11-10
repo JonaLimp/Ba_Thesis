@@ -192,6 +192,15 @@ __C.TRAIN.LOSS = "mse"
 
 __C.TRAIN.VALID_FREQ = 2
 
+__C.TRAIN.DATA_AUGMENTATION_PARAMS = {
+                "featurewise_center" : False,
+                "featurewise_std_normalization" : False,
+                "rotation_range" : 0 ,
+                "width_shift_range" : 0.0,
+                "height_shift_range" : 0.0,
+                "horizontal_flip": False
+    }
+
 
 #
 # Model options

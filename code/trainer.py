@@ -117,6 +117,7 @@ class Trainer(object):
         self.best_val_loss = np.inf
         self.is_best = True
 
+        self.aug_params = config.TRAIN.DATA_AUGMENTATION_PARAMS
         # self.file_writer.set_as_default()
 
 
@@ -144,17 +145,15 @@ class Trainer(object):
         if self.data_aug == True:
 
             datagen = ImageDataGenerator(
-                featurewise_center=True,
-                featurewise_std_normalization=True,
-                rotation_range=20,
-                width_shift_range=0.2,
-                height_shift_range=0.2,
-                horizontal_flip=True)
+                featurewise_center=self.aug_params["featurewise_center"],
+                featurewise_std_normalization=self.aug_params["featurewise_std_normalization"],
+                rotation_range=self.aug_params["rotation_range"],
+                width_shift_range=self.aug_params["width_shift_range"],
+                height_shift_range=self.aug_params["height_shift_range"],
+                horizontal_flip=self.aug_params["horizontal_flip"]
+                )
 
             datagen.fit(self.x_train)
-
-            val_datagen = ImageDataGenerator()
-            val_datagen.fit(self.x_val)
 
 
         # help params 
