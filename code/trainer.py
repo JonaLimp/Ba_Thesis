@@ -204,16 +204,30 @@ class Trainer(object):
             # fit multi-label classifier
             else:
 
-                history = self.model.fit(
-                    self.x_train,
-                    dict_y_train,
-                    batch_size=self.batchsize,
-                    validation_data=(self.x_val, dict_y_val),
-                    shuffle=True,
-                    epochs=epoch + 1,
-                    initial_epoch=epoch,
-                    validation_freq=self.val_freq,
-                )
+                if self.data_aug == False:
+
+                    history = self.model.fit(
+                            self.x_train,
+                            dict_y_train,
+                            batch_size=self.batchsize,
+                            validation_data=(self.x_val, dict_y_val),
+                            shuffle=True,
+                            epochs=epoch + 1,
+                            initial_epoch=epoch,
+                            validation_freq=self.val_freq,
+                        )
+
+                else:
+
+                    history = self.model.fit_generator(datagen.flow(self.x_train, self.y_train, batch_size=self.batchsize),
+                        steps_per_epoch=None,
+                        epochs= epoch + 1, 
+                        validation_data=(self.x_val, dict_y_val), 
+                        validation_freq=self.val_freq,
+                        shuffle=True,
+                        initial_epoch=epoch)
+                    print('use data_aug')
+
 
             # print(history.history.keys())
             

@@ -1,12 +1,20 @@
 NAME: 'VGG16_augmented'
-NOTE: '#2 run with augmented data  '
+NOTE: '#3 run with augmented dat,, rotation=20, WIDTH_SHIFT_RANGE=0.2,HF  '
 
 
 RESUME: False
 
 PRE_PROCESSING:
     LABEL: 'fine'
-    DATA_AUGMENTATION: True
+DATA_AUGMENTATION: 
+    DATA_AUG: True
+    FEATUREWISE_CENTER: False
+    FEATUREWISE_STD_NORMALIZATION: False
+    ROTATION_RANGE: 20
+    WIDTH_SHIFT_RANGE: 0.2
+    HEIGHT_SHIFT_RANGE: 0.2
+    HORIZONTAL_FLIP: TRUE
+
 
 
 MODEL:
