@@ -20,6 +20,7 @@ def _merge_a_into_b(a, b):
         return
 
     for k, v in a.items():
+
         # a must specify keys that are in b
         if not k in b:
             raise KeyError("{} is not a valid config key".format(k))
@@ -140,8 +141,23 @@ __C.PRE_PROCESSING = edict()
 # Which labels to use
 __C.PRE_PROCESSING.LABEL = "fine"
 
+
 #Whether to use data augmentation
-__C.PRE_PROCESSING.DATA_AUGMENTATION = False
+__C.DATA_AUGMENTATION = edict()
+
+__C.DATA_AUGMENTATION.DATA_AUG = False
+
+__C.DATA_AUGMENTATION.FEATUREWISE_CENTER = False
+
+__C.DATA_AUGMENTATION.FEATUREWISE_STD_NORMALIZATION = False
+
+__C.DATA_AUGMENTATION.ROTATION_RANGE = 0
+
+__C.DATA_AUGMENTATION.WIDTH_SHIFT_RANGE = 0.
+
+__C.DATA_AUGMENTATION.HEIGHT_SHIFT_RANGE= 0.
+
+__C.DATA_AUGMENTATION.HORIZONTAL_FLIP = False
 
 #
 # Training options
@@ -192,14 +208,7 @@ __C.TRAIN.LOSS = "mse"
 
 __C.TRAIN.VALID_FREQ = 2
 
-__C.TRAIN.DATA_AUGMENTATION_PARAMS = {
-                "featurewise_center" : False,
-                "featurewise_std_normalization" : False,
-                "rotation_range" : 0 ,
-                "width_shift_range" : 0.0,
-                "height_shift_range" : 0.0,
-                "horizontal_flip": False
-    }
+
 
 
 #

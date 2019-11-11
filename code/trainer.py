@@ -90,7 +90,7 @@ class Trainer(object):
         self.val_freq = config.TRAIN.VALID_FREQ
         self.train_patience = config.TRAIN.TRAIN_PATIENCE
 
-        self.data_aug = config.PRE_PROCESSING.DATA_AUGMENTATION
+
 
         #tensorboard params
 
@@ -117,7 +117,13 @@ class Trainer(object):
         self.best_val_loss = np.inf
         self.is_best = True
 
-        self.aug_params = config.TRAIN.DATA_AUGMENTATION_PARAMS
+        self.data_aug = config.DATA_AUGMENTATION.DATA_AUG
+        self.featurewise_center=config.DATA_AUGMENTATION.FEATUREWISE_CENTER
+        self.featurewise_std_normalization=config.DATA_AUGMENTATION.FEATUREWISE_STD_NORMALIZATION 
+        self.rotation_range=config.DATA_AUGMENTATION.ROTATION_RANGE
+        self.width_shift_range=config.DATA_AUGMENTATION.WIDTH_SHIFT_RANGE
+        self.height_shift_range=config.DATA_AUGMENTATION.HEIGHT_SHIFT_RANGE
+        self.horizontal_flip=config.DATA_AUGMENTATION.HORIZONTAL_FLIP
         # self.file_writer.set_as_default()
 
 
@@ -145,12 +151,12 @@ class Trainer(object):
         if self.data_aug == True:
 
             datagen = ImageDataGenerator(
-                featurewise_center=self.aug_params["featurewise_center"],
-                featurewise_std_normalization=self.aug_params["featurewise_std_normalization"],
-                rotation_range=self.aug_params["rotation_range"],
-                width_shift_range=self.aug_params["width_shift_range"],
-                height_shift_range=self.aug_params["height_shift_range"],
-                horizontal_flip=self.aug_params["horizontal_flip"]
+                featurewise_center=self.featurewise_center,
+                featurewise_std_normalization=self.featurewise_std_normalization,
+                rotation_range=self.rotation_range,
+                width_shift_range=self.width_shift_range,
+                height_shift_range=self.height_shift_range,
+                horizontal_flip=self.horizontal_flip
                 )
 
             datagen.fit(self.x_train)

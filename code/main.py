@@ -60,7 +60,7 @@ def main(config,cnfg):
         config.TRAIN.VALID,
         config.TEST.NUM,
         config.PRE_PROCESSING.LABEL,
-        config.PRE_PROCESSING.DATA_AUGMENTATION
+        config.DATA_AUGMENTATION.DATA_AUG
     )
 
     cfg_set_log_file(cfg)
