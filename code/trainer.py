@@ -191,7 +191,11 @@ class Trainer(object):
                 else:
 
 
-                    history = self.model.fit_generator(datagen.flow(self.x_train, self.y_train, batch_size=self.batchsize),
+                    history = self.model.fit_generator(
+                        datagen.flow(
+                            self.x_train, 
+                            self.y_train, 
+                            batch_size=self.batchsize),
                         steps_per_epoch=None,
                         epochs= epoch + 1, 
                         validation_data=(self.x_val,self.y_val), 
@@ -208,9 +212,9 @@ class Trainer(object):
 
                     history = self.model.fit(
                             self.x_train,
-                            dict_y_train,
+                            self.y_train,
                             batch_size=self.batchsize,
-                            validation_data=(self.x_val, dict_y_val),
+                            validation_data=(self.x_val, self.y_val),
                             shuffle=True,
                             epochs=epoch + 1,
                             initial_epoch=epoch,
@@ -219,7 +223,11 @@ class Trainer(object):
 
                 else:
 
-                    history = self.model.fit_generator(datagen.flow(self.x_train, self.y_train, batch_size=self.batchsize),
+                    history = self.model.fit_generator(
+                        datagen.flow(
+                            self.x_train, 
+                            dict_y_train, 
+                            batch_size=self.batchsize),
                         steps_per_epoch=None,
                         epochs= epoch + 1, 
                         validation_data=(self.x_val, dict_y_val), 
