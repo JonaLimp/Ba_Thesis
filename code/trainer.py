@@ -58,7 +58,8 @@ class Trainer(object):
                 config.MODEL.NEURON_ARR,
                 config.MODEL.VGG16_top,
                 config.MODEL.USE_GEN,
-                config.MODEL.DROPOUT_ARR
+                config.MODEL.DROPOUT_ARR,
+                config.TRAIN.WEIGHT_DECAY
             )
         else:
             self.model = tf.keras.models.load_model(self.save_path)
