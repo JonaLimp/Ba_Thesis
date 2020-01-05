@@ -15,7 +15,7 @@ import numpy as np
 from PIL import Image
 import keras.backend as K
 import pdb
-import convnet 
+import convnet
 import utils
 import time
 import pickle
@@ -118,10 +118,10 @@ def load_data(data_type):
         return data, data_shape
 
     if data_type == 'test':
-        return x_test, y_test 
+        return x_test, y_test
 
 def get_layer_list(model):
-    
+
     layer_list = []
     for idx in range(len(model.layers)-4):
         layer_list.append((model.layers[idx],model.layers[idx].name))
@@ -138,17 +138,26 @@ def get_top_k_activation(model, data, layer, feature_map, k=5):
     #activation_model = Model(inputs=model.input, outputs=layer_outputs)
 
 
-    input_ = model.layers[0].input
-    output = layer.output
+ #   input_ = model.layers[0].input
+ #   output = layer.output
 
-    get_activation = K.function([input_], [output])
+ #   get_activation = K.function([input_], [output])
+
+    #inp = model.input                                           # input placeholder
+    #outputs = [layer.output for layer in model.layers]          # all layer outputs
+    #get_activation = K.function([inp, K.learning_phase()], outputs )   # evaluation function
+
+    # Testing
+    #test = np.random.random(input_shape)[np.newaxis,...]
+    #layer_outs = functor([test, 0.])
+    #print layer_outs
 
     data = np.expand_dims(data, axis=1)
 
     activation_list = []
 
     print(layer.name,' ' ,feature_map)
-    start = time.clock() 
+    start = time.clock()
 
     elapsed = time.clock()
     elapsed = elapsed - start
@@ -157,27 +166,29 @@ def get_top_k_activation(model, data, layer, feature_map, k=5):
         #print('sample: #' , idx)
 
         #pred = activation_model.predict(sample)
-
-        sample_activation = get_activation([sample])[0]
-
-
-        
-        arr_feat_map = np.array(sample_activation)[0,:,:,feature_map]
-        feature_map_sum = np.sum(arr_feat_map, axis=(0,1))
+        activations = model.predict(sample)
+        activation_list.append(activations)
+        #sample_activation = get_activation([sample,0.])[0]
+        #activation_list.append(sample_activation)
 
 
-        activation_list.append((idx,feature_map_sum))
-        activation_list.sort(key=lambda x: x[1], reverse=True)
+        #arr_feat_map = np.array(sample_activation)[0,:,:,feature_map]
+        #feature_map_sum = np.sum(arr_feat_map, axis=(0,1))
 
-        
+
+        #activation_list.append((idx,feature_map_sum))
+        #activation_list.sort(key=lambda x: x[1], reverse=True)
+
+
         #plt.imshow(arr_feat_map)
         #plt.show()
         #pdb.set_trace()
     elapsed = time.clock()
     elapsed = elapsed - start
     print("Time spent in (function name) is: ", elapsed)
-    return activation_list[:k]
-        
+    indices = np.argpartition(np.array(activation_list), -k, axis=0)[k:]
+    return activation_list[indices], indices
+
 def get_img_dict(activation_dict):
 
     img_dict = {}
@@ -234,7 +245,7 @@ def deconvolve_data(data, img_dict, layer_list):
 
             layer_idx.update({layer[1] : index})
             index += 1
-            layer_idx.update({layer[1] + '_activation': index}) 
+            layer_idx.update({layer[1] + '_activation': index})
             index += 1
 
 
@@ -243,7 +254,7 @@ def deconvolve_data(data, img_dict, layer_list):
             index +=1
 
 
-    
+
 
     data = np.expand_dims(data, axis=1)
 
@@ -270,7 +281,7 @@ def deconvolve_data(data, img_dict, layer_list):
 
 
                 output = deconv_layers[layer_idx[elem[1]]][0].up_data
-                
+
 
 
 
@@ -299,12 +310,12 @@ def deconvolve_data(data, img_dict, layer_list):
                 for i in range(layer_idx[elem[1]]-1, - 1, -1):
 
                     deconv_layers[i][0].down(deconv_layers[i + 1][0].down_data)
-                
-                
+
+
                 deconv = deconv_layers[0][0].down_data
                 deconv = deconv.squeeze()
 
-                
+
                 if isinstance(deconv_layers[layer_idx[elem[1]]][0].layer, Conv2D):
 
                     if elem[1] in deconv_dict.keys():
@@ -313,7 +324,7 @@ def deconvolve_data(data, img_dict, layer_list):
                     else:
 
                         num_feature_maps = deconv_layers[layer_idx[elem[1]]][0].layer.get_weights()[0].shape[3]
-                        deconv_dict.update({elem[1]: [ [] for x in range(num_feature_maps )]}) 
+                        deconv_dict.update({elem[1]: [ [] for x in range(num_feature_maps )]})
 
                         deconv_dict[elem[1]][elem[2]-1].append((elem, deconv))
 
@@ -373,7 +384,7 @@ def get_values(img_dict):
         for e in img_dict[elem]:
             if e[2] == 0 or e[2] == 64:
 
-                print(e[2]) 
+                print(e[2])
 
 
 
@@ -386,6 +397,9 @@ def get_activations(activation_save_path, layer_list, data, data_shape):
 
     activation_dict = {}
 
+    top5, top5_idx = get_top_k_activation(model, data, idx)
+
+    pdb.set_trace()
 
     layer_list.pop(0)
     for layer in layer_list:
@@ -399,9 +413,9 @@ def get_activations(activation_save_path, layer_list, data, data_shape):
                 activation = get_top_k_activation(model,data,layer[0], idx)
                 activation_dict[layer[0].name].update({ idx : activation })
 
-    pickle.dump(activation_dict, open(activation_save_path, 'wb')) 
+    pickle.dump(activation_dict, open(activation_save_path, 'wb'))
 
-    print("Activation_dict saved")   
+    print("Activation_dict saved")
 
 
 
@@ -415,12 +429,12 @@ def get_deconvolution(activation_save_path,deconv_save_path, data, layer_list):
     #get_values(img_dict)
 
     deconv = deconvolve_data(data, img_dict, layer_list)
-    pickle.dump(deconv, open(deconv_save_path, 'wb')) 
+    pickle.dump(deconv, open(deconv_save_path, 'wb'))
     print('deconvolved images are dumped')
-         
+
 
 def deconvolution_loop(deconv_save_path):
-        
+
     while True:
 
 
@@ -451,7 +465,7 @@ def deconvolution_loop(deconv_save_path):
 
         print("läuft")
         for idx in range(5):
-        
+
             plt.subplot(3,5,idx + 6)
             plt.imshow(data[neuron[idx][0][0]])
 
@@ -465,9 +479,9 @@ def deconvolution_loop(deconv_save_path):
                 for jd in range(deprocess_img.shape[1]):
                     for cd in range(deprocess_img.shape[2]):
                         #print(stats.mode(deprocess_img, axis=None)[0])
-                        if deprocess_img[i][jd][cd] <= 119 or deprocess_img[i][jd][cd] >= 128: 
+                        if deprocess_img[i][jd][cd] <= 119 or deprocess_img[i][jd][cd] >= 128:
                             overlay_img[i][jd][cd] = deprocess_img[i][jd][cd]
-            
+
             deprocess_img_mode = stats.mode(deprocess_img)
             deprocess_images_mode.append(deprocess_img_mode)
             plt.subplot(3,5,idx + 11)
@@ -484,12 +498,12 @@ def deconvolution_loop(deconv_save_path):
         plt.clf()
 
 
-            
-
-            
 
 
-            
+
+
+
+
 
 
 
@@ -531,7 +545,7 @@ def visualize_neurons():
     for idx in range(25):
         print(deconv[key][idx+5][1][0])
         plt.subplot(5,5,idx +1 )
-        plt.imshow(deprocess_image( deconv[key][idx+5][1][1])) 
+        plt.imshow(deprocess_image( deconv[key][idx+5][1][1]))
 
     plt.show()
 
@@ -595,7 +609,7 @@ if __name__ == '__main__':
 
 
 
- 
+
 
 
 
