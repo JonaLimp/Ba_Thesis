@@ -503,7 +503,7 @@ def get_activations(activation_save_path, layer_list, data, data_shape):
 
     layer_list.pop(0)
     for layer in layer_list:
-        print('k')
+
         if isinstance(layer[0], Conv2D):
 
             activation_dict.update({layer[0].name : { }})
@@ -525,7 +525,7 @@ def get_deconvolution(activation_save_path,deconv_save_path, data, layer_list):
     print("Activation_dict loaded")
 
     img_dict = get_img_dict(activation_dict)
-
+    pdb.set_trace()
     #get_values(img_dict)
 
     deconv = deconvolve_data(data, img_dict, layer_list)
@@ -663,8 +663,8 @@ def get_highest_act(act_save_path):
 if __name__ == '__main__':
 
     #model_load = False
-    get_act = True
-    get_deconv = False
+    get_act = False
+    get_deconv = True
     #load_deconv = False
     deconv_loop = False
     highest_act = False
@@ -674,10 +674,10 @@ if __name__ == '__main__':
     data, data_shape = load_data('act')
     data_block1 = data[:500]
     data_name = 'data_block1'
-    model_type = 'BN_VGG'
+    model_type = 'VGG_16'
 
-
-    model = load_model(data_shape,'./ckpt/Model with  Batch Normalization_#1 run BN_fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64_best_val_loss', model_type)
+    #./ckpt/Model with  Batch Normalization_#1 run BN_fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64_best_val_loss
+    model = load_model(data_shape,'./ckpt/VGG16_miss_max_augmented_fine_#1 run one MPL missing, DA  _fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64', model_type)
 
     if model_test == True:
         test_model(model)
