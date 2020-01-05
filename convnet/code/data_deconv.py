@@ -112,7 +112,7 @@ def load_data(data_type):
 
     if data_type == 'act':
 
-        data = x_test[:10]
+        data = x_test
         data_shape = data.shape
 
         return data, data_shape
@@ -147,7 +147,7 @@ def get_top_k_activation(model, data, layer, feature_map, k=5):
 
     activation_list = []
 
-    print(layer,' ' ,feature_map)
+    print(layer.name,' ' ,feature_map)
     start = time.clock() 
 
     elapsed = time.clock()
@@ -212,9 +212,9 @@ def get_deconv_layer(layer_list):
         elif isinstance(layer, MaxPooling2D):
             deconv_layers.append((convnet.DPooling(layer),layer.name))
         elif isinstance(layer, Activation):
-            pdb.set_trace()
+
             deconv_layers.append((convnet.DActivation(layer),layer.name + "_activation"))
-        elif isinstance(layer, keras.engine.topology.InputLayer):
+        elif isinstance(layer, keras.engine.input_layer.InputLayer):
             deconv_layers.append((convnet.DInput(layer),layer.name))
 
 
@@ -249,7 +249,7 @@ def deconvolve_data(data, img_dict, layer_list):
 
 
 
-    pdb.set_trace()
+
     for sample in range(data.shape[0]):
 
 
@@ -380,12 +380,12 @@ def get_values(img_dict):
 
 
 def get_activations(activation_save_path, layer_list, data, data_shape):
-    activation_save_path = './Data/activation_dict.pickle'
+
 
 
 
     activation_dict = {}
-    pdb.set_trace()
+
 
     layer_list.pop(0)
     for layer in layer_list:
@@ -483,7 +483,7 @@ def deconvolution_loop(deconv_save_path):
 
         plt.clf()
 
-        pdb.set_trace()
+
             
 
             
@@ -499,7 +499,7 @@ def deconvolution_loop(deconv_save_path):
 def load_deconv():
 
 
-    deconv_save_path = './Data/deconv_dict.pickle'
+    deconv_save_path = '.convnet/Data/deconv_dict.pickle'
     deconv = pickle.load(open(deconv_save_path,'rb'))
     neuron = deconv['block1_conv1'][23][1]
 
@@ -517,6 +517,7 @@ def test_model():
 
     x_test, y_test = load_data('test')
     result = model.evaluate(x_test, y_test)
+    print(results)
     pdb.set_trace()
 
 
@@ -534,39 +535,62 @@ def visualize_neurons():
 
     plt.show()
 
+def get_highest_act(act_save_path):
+
+    highest_act_list = []
+    act_dict = pickle.load(open(act_save_path, 'rb'))
+    for key  in act_dict.keys():
+        for k in act_dict[key].keys():
+            continue
+
+    pdb.set_trace()
+
+
 if __name__ == '__main__':
 
     #model_load = False
     get_act = False
     get_deconv = False
-    load_deconv = False
+    #load_deconv = False
     deconv_loop = True
-    test_model = False
-    visualize_neurons = False
+    highest_act = False
+    #test_model = False
+    #visualize_neurons = False
 
     data, data_shape = load_data('act')
-    model = load_model(data_shape,'./Data/tester')
+    data_block1 = data[:500]
+    data_name = 'data_block1'
+
+
+    model = load_model(data_shape,'./ckpt/VGG16_miss_max_augmented_fine_#1 run one MPL missing, DA  _fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64')
     layer_list = get_layer_list(model)
     #layer_list.pop(0)
-    layer_list =layer_list[:-10]
+    #layer_list =layer_list[:-10]
 
-    activation_save_path = './Data/activation_dict.pickle'
-    deconv_save_path = './Data/deconv_dict.pickle'
+    activation_save_path = './convnet/Data/activation_dict_{}.pickle'.format(data_name)
+    deconv_save_path = './convnet/Data/deconv_dict_{}.pickle'.format(data_name)
 
-    
+
     # get activations for each neuron in each layer for given dataset
     # and save them as pickle file
     if get_act == True:
-        get_activations(activation_save_path, layer_list, data, data_shape)
+        get_activations(activation_save_path, layer_list, data_block1, data_shape)
 
     # get deconvs for each neuron in each layer for given dataset
     # and save them as pickle file
     if get_deconv == True:
-        get_deconvolution(activation_save_path, deconv_save_path, data, layer_list)
+        get_deconvolution(activation_save_path, deconv_save_path, data_block1, layer_list)
+
+    if highest_act == True:
+        get_highest_act(activation_save_path)
 
     #visualize specific neurons
     if deconv_loop == True:
         deconvolution_loop(deconv_save_path)
+
+
+
+
 
 
 
