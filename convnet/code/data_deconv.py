@@ -179,7 +179,7 @@ def BN_VGG(data_shape,weights_path=None):
 
     model.summary()
 
-    pdb.set_trace()
+    #pdb.set_trace()
 
     return model
 
@@ -197,7 +197,7 @@ def load_model(weights_path,data_shape, model_type):
         model = BN_VGG(weights_path,data_shape)
 
     model.compile(optimizer="sgd", loss='categorical_crossentropy', metrics = ["accuracy", "top_k_categorical_accuracy"])
-    pdb.set_trace()
+    #pdb.set_trace()
     return model
 
 def one_hot_encoding(y_train, y_test, classes):
@@ -244,64 +244,52 @@ def get_layer_list(model):
 
     #TODO check for valid layers
 
-def get_top_k_activation(model, data, layer, feature_map, k=5):
+def get_top_k_activation(model, data, k=5):
 
     #TODO improve performance by using activation model
 
-    #layer_outputs = [layer.output for layer in model.layers[:3]]
-    #activation_model = Model(inputs=model.input, outputs=layer_outputs)
-
-
- #   input_ = model.layers[0].input
- #   output = layer.output
-
- #   get_activation = K.function([input_], [output])
-
-    #inp = model.input                                           # input placeholder
-    #outputs = [layer.output for layer in model.layers]          # all layer outputs
-    #get_activation = K.function([inp, K.learning_phase()], outputs )   # evaluation function
-
-    # Testing
-    #test = np.random.random(input_shape)[np.newaxis,...]
-    #layer_outs = functor([test, 0.])
-    #print layer_outs
+    layer_outputs = [layer.output for layer in model.layers[1:] if isinstance(layer, Conv2D)]
+    activation_model = Model(inputs=model.input, outputs=layer_outputs)
 
     data = np.expand_dims(data, axis=1)
 
     activation_list = []
 
-    print(layer.name,' ' ,feature_map)
     start = time.clock()
 
     elapsed = time.clock()
     elapsed = elapsed - start
 
+    all_activations = np.zeros((len(data),len(layer_outputs),int(layer_outputs[-1].shape[-1])))
     for idx ,sample in enumerate(data):
-        #print('sample: #' , idx)
+        activations = activation_model.predict(sample)
 
-        #pred = activation_model.predict(sample)
-        activations = model.predict(sample)
+        for l,layer in enumerate(activations):
+            for f, feature_map in enumerate(layer[...,-1]):
+                all_activations[idx,l,f] = feature_map.sum()
+
         activation_list.append(activations)
-        #sample_activation = get_activation([sample,0.])[0]
-        #activation_list.append(sample_activation)
 
 
-        #arr_feat_map = np.array(sample_activation)[0,:,:,feature_map]
-        #feature_map_sum = np.sum(arr_feat_map, axis=(0,1))
 
+    indices = np.argpartition(all_activations, -k, axis=0)[-k:]
+    top5_activations = []
+    for i,idx in enumerate(indices):
+        for l,layer in enumerate(idx):
+            for f,maxidx in enumerate(layer):
+                a = activation_list[maxidx][l]
+                if f >= a.shape[-1]:
+                    continue
+                act = a[...,f]
+                lname = layer_outputs[l].name
+                top5_activations.append((act,(maxidx,lname,f,0,act.sum())))
 
-        #activation_list.append((idx,feature_map_sum))
-        #activation_list.sort(key=lambda x: x[1], reverse=True)
-
-
-        #plt.imshow(arr_feat_map)
-        #plt.show()
-        #pdb.set_trace()
     elapsed = time.clock()
     elapsed = elapsed - start
     print("Time spent in (function name) is: ", elapsed)
-    indices = np.argpartition(np.array(activation_list), -k, axis=0)[k:]
-    return activation_list[indices], indices
+
+
+    return top5_activations
 
 def get_img_dict(activation_dict):
 
@@ -378,7 +366,7 @@ def deconvolve_data(data, img_dict, layer_list):
     for sample in range(data.shape[0]):
 
 
-        if sample in img_dict.keys():
+        if sample in img_dict:
             print(sample)
             for index ,elem in enumerate(img_dict[sample]):
 
@@ -477,12 +465,12 @@ def deprocess_image(x):
 
                 while layer_list[idx][1] != final_layer:
 
-                    pdb.set_trace()
+                    #pdb.set_trace()
                     deconv_layers[0][0].up(data[sample])
                     deconv_layers[idx][0].up(deconv_layers[idx -1][0].up_data)
                     idx += 1
 
-                    pdb.set_trace()
+                    #pdb.set_trace()
 
                 print(elem)
 """
@@ -506,29 +494,8 @@ def get_values(img_dict):
 
 def get_activations(activation_save_path, layer_list, data, data_shape):
 
-
-
-
-    activation_dict = {}
-
-    top5, top5_idx = get_top_k_activation(model, data, idx)
-
-    pdb.set_trace()
-
-    layer_list.pop(0)
-    for layer in layer_list:
-
-        if isinstance(layer[0], Conv2D):
-
-            activation_dict.update({layer[0].name : { }})
-
-            for idx in range(layer[0].output_shape[3]):
-
-                activation = get_top_k_activation(model,data,layer[0], idx)
-                activation_dict[layer[0].name].update({ idx : activation })
-
-    pickle.dump(activation_dict, open(activation_save_path, 'wb'))
-
+    top5 = get_top_k_activation(model, data)
+    pickle.dump(top5, open(activation_save_path, 'wb'))
     print("Activation_dict saved")
 
 
@@ -538,8 +505,8 @@ def get_deconvolution(activation_save_path,deconv_save_path, data, layer_list):
     activation_dict = pickle.load(open(activation_save_path,'rb'))
     print("Activation_dict loaded")
 
-    img_dict = get_img_dict(activation_dict)
-    pdb.set_trace()
+    #img_dict = get_img_dict(activation_dict)
+    #pdb.set_trace()
     #get_values(img_dict)
 
     deconv = deconvolve_data(data, img_dict, layer_list)
@@ -636,7 +603,7 @@ def load_deconv():
         for idx ,elem in enumerate(deconv[key]):
             print(deconv[key][idx][0][0])
 
-    pdb.set_trace()
+    #pdb.set_trace()
 
 
 def test_model(model):
@@ -654,7 +621,7 @@ def visualize_neurons():
     deconv_save_path = './Data/deconv_dict.pickle'
     deconv = pickle.load(open(deconv_save_path,'rb'))
 
-    pdb.set_trace()
+    #pdb.set_trace()
     key = 'block3_conv1'
     for idx in range(25):
         print(deconv[key][idx+5][1][0])
@@ -671,14 +638,14 @@ def get_highest_act(act_save_path):
         for k in act_dict[key].keys():
             continue
 
-    pdb.set_trace()
+    #pdb.set_trace()
 
 
 if __name__ == '__main__':
 
     #model_load = False
     get_act = True
-    get_deconv = False
+    get_deconv = True
     #load_deconv = False
     deconv_loop = False
     highest_act = False
@@ -699,7 +666,7 @@ if __name__ == '__main__':
     layer_list = get_layer_list(model)
     #layer_list.pop(0)
     #layer_list =layer_list[:-10]
-    pdb.set_trace()
+    #pdb.set_trace()
     activation_save_path = './convnet/Data/activation_dict_{}.pickle'.format(data_name)
     deconv_save_path = './convnet/Data/deconv_dict_{}.pickle'.format(data_name)
 
