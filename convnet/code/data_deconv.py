@@ -6,6 +6,7 @@ from keras import layers
 from keras.layers.convolutional import Conv2D, MaxPooling2D, ZeroPadding2D
 from keras import layers
 from keras.models import Model
+from keras import regularizers
 from scipy import stats
 from keras.applications.vgg16 import VGG16
 import keras
@@ -72,18 +73,131 @@ def VGG_16_keras(data_shape,weights_path=None):
 
     return model
 
+def BN_VGG(data_shape,weights_path=None):
 
-def load_model(weights_path,data_shape):
+    weight_decay = 0.5
+    visible = layers.Input(shape=(data_shape[1], data_shape[2], data_shape[3]))
+    
+    # Block 1
+    x = layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1',kernel_regularizer=regularizers.l2(weight_decay))(visible)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dropout(0.3)(x)
+    x = layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2',kernel_regularizer=regularizers.l2(weight_decay))(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block1_pool')(x)
+
+    #Block 2
+    x = layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv1', kernel_regularizer=regularizers.l2(weight_decay))(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dropout(0.4)(x)
+    x = layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv2', kernel_regularizer=regularizers.l2(weight_decay))(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.MaxPooling2D((2,2), strides= (2,2), name ='block2_pool')(x)
+
+    # Block 3
+    x = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv1', kernel_regularizer=regularizers.l2(weight_decay))(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dropout(0.4)(x)
+    x = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv2', kernel_regularizer=regularizers.l2(weight_decay))(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dropout(0.4)(x)
+    x = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv3', kernel_regularizer=regularizers.l2(weight_decay))(x)
+    x = layers.BatchNormalization()(x)        
+    x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool')(x)
+
+    # Block 4
+    x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv1', kernel_regularizer=regularizers.l2(weight_decay))(x)
+    x = layers.BatchNormalization()(x)   
+    x = layers.Dropout(0.4)(x)
+    x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv2', kernel_regularizer=regularizers.l2(weight_decay))(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dropout(0.4)(x)           
+    x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv3', kernel_regularizer=regularizers.l2(weight_decay))(x)
+    x = layers.BatchNormalization()(x)           
+    x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(x)
+
+    # Block 5
+    x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv1', kernel_regularizer=regularizers.l2(weight_decay))(x)
+    x = layers.BatchNormalization()(x)   
+    x = layers.Dropout(0.4)(x)        
+    x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv2', kernel_regularizer=regularizers.l2(weight_decay))(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dropout(0.4)(x)
+    x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv3', kernel_regularizer=regularizers.l2(weight_decay))(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
+    network = layers.Dropout(0.5)(x) 
+
+    network = layers.Flatten()(x)
+
+    network = layers.Dense(4096,activation = 'relu')(network)
+    network = layers.Dense(4096,activation = 'relu')(network)
+    network = layers.Dense(1024,activation = 'relu')(network)
+
+    out = layers.Dense(100, activation="softmax")(network)
+
+    model = Model(inputs=visible , outputs=out)
+
+
+
+
+    model.summary()
+
+    print("Loading weights...")
+    model.load_weights(weights_path)
+
+    layer_list = []
+
+
+    for layer in model.layers:
+        layer_list.append(layer)
+
+    layer_list.pop(0)
+    In = layers.Input(shape=(data_shape[1], data_shape[2], data_shape[3]))
+
+    for idx,layer in enumerate(layer_list):
+
+
+        if idx == 0:
+            net = layer(In)
+            continue
+
+        if isinstance(layer, Conv2D):
+            net = layer (net)
+
+        elif isinstance(layer, MaxPooling2D):
+            net = layer (net)
+
+        elif isinstance(layer, Dense):
+            net = layer (net)
+
+
+
+    model = Model(inputs=In , outputs=net)
+
+    print("Model without dropout and batchnorm layers")
+
+    model.summary()
+
+    pdb.set_trace()
+
+    return model
+
+def load_model(weights_path,data_shape, model_type):
     """
     Load and compile VGG model
     args: weights_path (str) trained weights file path
     returns model (Keras model)
     """
-    # either VGG16() or VGG16_keras
+    # either VGG16(), VGG16_keras or BN_VGG
+    if model_type == 'VGG_16':
+        model = VGG_16_keras(weights_path,data_shape)
 
-    model = VGG_16_keras(weights_path,data_shape)
+    if model_type == 'BN_VGG':
+        model = BN_VGG(weights_path,data_shape)
+
     model.compile(optimizer="sgd", loss='categorical_crossentropy', metrics = ["accuracy", "top_k_categorical_accuracy"])
-
+    pdb.set_trace()
     return model
 
 def one_hot_encoding(y_train, y_test, classes):
@@ -403,7 +517,7 @@ def get_activations(activation_save_path, layer_list, data, data_shape):
 
     layer_list.pop(0)
     for layer in layer_list:
-        print('k')
+
         if isinstance(layer[0], Conv2D):
 
             activation_dict.update({layer[0].name : { }})
@@ -425,7 +539,7 @@ def get_deconvolution(activation_save_path,deconv_save_path, data, layer_list):
     print("Activation_dict loaded")
 
     img_dict = get_img_dict(activation_dict)
-
+    pdb.set_trace()
     #get_values(img_dict)
 
     deconv = deconvolve_data(data, img_dict, layer_list)
@@ -525,14 +639,14 @@ def load_deconv():
     pdb.set_trace()
 
 
-def test_model():
+def test_model(model):
 
     model = load_model(data_shape,'./Data/tester')
 
     x_test, y_test = load_data('test')
     result = model.evaluate(x_test, y_test)
     print(results)
-    pdb.set_trace()
+
 
 
 def visualize_neurons():
@@ -564,23 +678,28 @@ if __name__ == '__main__':
 
     #model_load = False
     get_act = False
-    get_deconv = False
+    get_deconv = True
     #load_deconv = False
-    deconv_loop = True
+    deconv_loop = False
     highest_act = False
-    #test_model = False
+    model_test = False
     #visualize_neurons = False
 
     data, data_shape = load_data('act')
     data_block1 = data[:500]
     data_name = 'data_block1'
+    model_type = 'VGG_16'
 
+    #./ckpt/Model with  Batch Normalization_#1 run BN_fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64_best_val_loss
+    model = load_model(data_shape,'./ckpt/VGG16_miss_max_augmented_fine_#1 run one MPL missing, DA  _fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64', model_type)
 
-    model = load_model(data_shape,'./ckpt/VGG16_miss_max_augmented_fine_#1 run one MPL missing, DA  _fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64')
+    if model_test == True:
+        test_model(model)
+
     layer_list = get_layer_list(model)
     #layer_list.pop(0)
     #layer_list =layer_list[:-10]
-
+    pdb.set_trace()
     activation_save_path = './convnet/Data/activation_dict_{}.pickle'.format(data_name)
     deconv_save_path = './convnet/Data/deconv_dict_{}.pickle'.format(data_name)
 
