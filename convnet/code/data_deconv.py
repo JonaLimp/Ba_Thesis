@@ -77,7 +77,7 @@ def BN_VGG(data_shape,weights_path=None):
 
     weight_decay = 0.5
     visible = layers.Input(shape=(data_shape[1], data_shape[2], data_shape[3]))
-    
+
     # Block 1
     x = layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1',kernel_regularizer=regularizers.l2(weight_decay))(visible)
     x = layers.BatchNormalization()(x)
@@ -102,31 +102,31 @@ def BN_VGG(data_shape,weights_path=None):
     x = layers.BatchNormalization()(x)
     x = layers.Dropout(0.4)(x)
     x = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv3', kernel_regularizer=regularizers.l2(weight_decay))(x)
-    x = layers.BatchNormalization()(x)        
+    x = layers.BatchNormalization()(x)
     x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool')(x)
 
     # Block 4
     x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv1', kernel_regularizer=regularizers.l2(weight_decay))(x)
-    x = layers.BatchNormalization()(x)   
+    x = layers.BatchNormalization()(x)
     x = layers.Dropout(0.4)(x)
     x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv2', kernel_regularizer=regularizers.l2(weight_decay))(x)
     x = layers.BatchNormalization()(x)
-    x = layers.Dropout(0.4)(x)           
+    x = layers.Dropout(0.4)(x)
     x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv3', kernel_regularizer=regularizers.l2(weight_decay))(x)
-    x = layers.BatchNormalization()(x)           
+    x = layers.BatchNormalization()(x)
     x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(x)
 
     # Block 5
     x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv1', kernel_regularizer=regularizers.l2(weight_decay))(x)
-    x = layers.BatchNormalization()(x)   
-    x = layers.Dropout(0.4)(x)        
+    x = layers.BatchNormalization()(x)
+    x = layers.Dropout(0.4)(x)
     x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv2', kernel_regularizer=regularizers.l2(weight_decay))(x)
     x = layers.BatchNormalization()(x)
     x = layers.Dropout(0.4)(x)
     x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv3', kernel_regularizer=regularizers.l2(weight_decay))(x)
     x = layers.BatchNormalization()(x)
     x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
-    network = layers.Dropout(0.5)(x) 
+    network = layers.Dropout(0.5)(x)
 
     network = layers.Flatten()(x)
 
@@ -677,8 +677,8 @@ def get_highest_act(act_save_path):
 if __name__ == '__main__':
 
     #model_load = False
-    get_act = False
-    get_deconv = True
+    get_act = True
+    get_deconv = False
     #load_deconv = False
     deconv_loop = False
     highest_act = False
