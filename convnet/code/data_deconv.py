@@ -663,8 +663,8 @@ def get_highest_act(act_save_path):
 if __name__ == '__main__':
 
     #model_load = False
-    get_act = False
-    get_deconv = True
+    get_act = True
+    get_deconv = False
     #load_deconv = False
     deconv_loop = False
     highest_act = False
@@ -681,7 +681,7 @@ if __name__ == '__main__':
 
     if model_test == True:
         test_model(model)
-
+ 
     layer_list = get_layer_list(model)
     #layer_list.pop(0)
     #layer_list =layer_list[:-10]
