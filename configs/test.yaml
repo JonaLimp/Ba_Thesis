@@ -6,7 +6,8 @@ RESUME: False
 
 PRE_PROCESSING:
     LABEL: 'fine'
-    DATA_AUGMENTATION: True
+DATA_AUGMENTATION: 
+        DATA_AUG: True
 
 MODEL:
     TYPE: 'VGG16'

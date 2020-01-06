@@ -269,7 +269,9 @@ def get_top_k_activation(model, data, k=5):
                 all_activations[idx,l,f] = feature_map.sum()
 
         activation_list.append(activations)
+        print('sample:# ',idx)
 
+    pdb.set_trace()
 
 
     indices = np.argpartition(all_activations, -k, axis=0)[-k:]
@@ -283,6 +285,8 @@ def get_top_k_activation(model, data, k=5):
                 act = a[...,f]
                 lname = layer_outputs[l].name
                 top5_activations.append((act,(maxidx,lname,f,0,act.sum())))
+    
+    pdb.set_trace()
 
     elapsed = time.clock()
     elapsed = elapsed - start
@@ -509,7 +513,7 @@ def get_deconvolution(activation_save_path,deconv_save_path, data, layer_list):
     #pdb.set_trace()
     #get_values(img_dict)
 
-    deconv = deconvolve_data(data, img_dict, layer_list)
+    deconv = deconvolve_data(data, activation_dict, layer_list)
     pickle.dump(deconv, open(deconv_save_path, 'wb'))
     print('deconvolved images are dumped')
 
@@ -520,8 +524,9 @@ def deconvolution_loop(deconv_save_path):
 
 
         deconv = pickle.load(open(deconv_save_path,'rb'))
+        pdb.set_trace()
         print(deconv.keys())
-        layer_name = input("Insert layer_name: ")
+        #layer_name = input("Insert layer_name: ")
         #layer_name = 'block1_conv2'
         print ('There are {} units in layer {}'.format(len(deconv[layer_name]), layer_name))
         neuron_num = input("Insert unit number: ")
