@@ -247,6 +247,10 @@ def get_layer_list(model):
 def get_top_k_activation(model, data, k=5):
 
     #TODO improve performance by using activation model
+    #save all activations in an arrya of shape
+    #dim #1 samples
+    #dim #2 layer
+    #dim #3 units
 
     layer_outputs = [layer.output for layer in model.layers[1:] if isinstance(layer, Conv2D)]
     activation_model = Model(inputs=model.input, outputs=layer_outputs)
@@ -260,33 +264,25 @@ def get_top_k_activation(model, data, k=5):
     elapsed = time.clock()
     elapsed = elapsed - start
 
+
     all_activations = np.zeros((len(data),len(layer_outputs),int(layer_outputs[-1].shape[-1])))
     for idx ,sample in enumerate(data):
         activations = activation_model.predict(sample)
-
         for l,layer in enumerate(activations):
-            for f, feature_map in enumerate(layer[...,-1]):
-                all_activations[idx,l,f] = feature_map.sum()
+            for f in range(layer.shape[-1]):
 
-        activation_list.append(activations)
-        print('sample:# ',idx)
-
-    pdb.set_trace()
+                feature_map = layer[...,f]
+                all_activations[idx,l,f] = np.abs(feature_map.sum())
 
 
     indices = np.argpartition(all_activations, -k, axis=0)[-k:]
-    top5_activations = []
+    top5_activations = [[] for d in range(len(data))]
     for i,idx in enumerate(indices):
         for l,layer in enumerate(idx):
             for f,maxidx in enumerate(layer):
-                a = activation_list[maxidx][l]
-                if f >= a.shape[-1]:
-                    continue
-                act = a[...,f]
                 lname = layer_outputs[l].name
-                top5_activations.append((act,(maxidx,lname,f,0,act.sum())))
-    
-    pdb.set_trace()
+                act_sum = all_activations[maxidx,l,f]
+                top5_activations[maxidx].append((maxidx,lname,f,act_sum))
 
     elapsed = time.clock()
     elapsed = elapsed - start
@@ -649,16 +645,16 @@ def get_highest_act(act_save_path):
 if __name__ == '__main__':
 
     #model_load = False
-    get_act = True
-    get_deconv = True
+    get_act = False
+    get_deconv = False
     #load_deconv = False
-    deconv_loop = False
+    deconv_loop = True
     highest_act = False
     model_test = False
     #visualize_neurons = False
 
     data, data_shape = load_data('act')
-    data_block1 = data[:500]
+    data_block1 = data[:100]
     data_name = 'data_block1'
     model_type = 'VGG_16'
 
