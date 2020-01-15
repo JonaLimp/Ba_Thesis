@@ -86,3 +86,7 @@ def one_hot_encoding(y_train, y_test, classes):
     y_train = keras.utils.to_categorical(y_train, classes)
     y_test = keras.utils.to_categorical(y_test, classes)
     return y_train, y_test
+
+def apply_offline_augmentation(data):
+    
+

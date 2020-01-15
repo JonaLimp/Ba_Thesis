@@ -409,7 +409,7 @@ def get_deconvolution(activation_save_path,deconv_save_path, data, layer_list):
 
     activation_dict = pickle.load(open(activation_save_path,'rb'))
     print("Activation_dict loaded")
-
+    pdb.set_trace()
     img_dict = get_img_dict(activation_dict)
 
     #get_values(img_dict)
@@ -550,9 +550,9 @@ if __name__ == '__main__':
 
     #model_load = False
     get_act = False
-    get_deconv = False
+    get_deconv = True
     #load_deconv = False
-    deconv_loop = True
+    deconv_loop = False
     highest_act = False
     #test_model = False
     #visualize_neurons = False
@@ -562,7 +562,7 @@ if __name__ == '__main__':
     data_name = 'data_block1'
 
 
-    model = load_model(data_shape,'./ckpt/VGG16_miss_max_augmented_fine_#1 run one MPL missing, DA  _fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64')
+    model = load_model(data_shape,'Data/Tester')
     layer_list = get_layer_list(model)
     #layer_list.pop(0)
     #layer_list =layer_list[:-10]
