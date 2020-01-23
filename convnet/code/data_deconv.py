@@ -21,6 +21,7 @@ import utils
 import time
 import pickle
 import operator
+import copy
 
 def VGG_16_keras(data_shape,weights_path=None):
 
@@ -280,9 +281,13 @@ def get_top_k_activation(model, data, k=5):
     for i,idx in enumerate(indices):
         for l,layer in enumerate(idx):
             for f,maxidx in enumerate(layer):
+                if f >= layer_outputs[l].shape[-1]:
+                    break
                 lname = layer_outputs[l].name
+                lname, _, _, = lname.partition('/')
                 act_sum = all_activations[maxidx,l,f]
                 top5_activations[maxidx].append((maxidx,lname,f,act_sum))
+
 
     elapsed = time.clock()
     elapsed = elapsed - start
@@ -341,6 +346,7 @@ def deconvolve_data(data, img_dict, layer_list):
     layer_idx = {}
     index = 0
 
+
     for layer in layer_list:
 
         if isinstance(layer[0], Conv2D):
@@ -358,6 +364,8 @@ def deconvolve_data(data, img_dict, layer_list):
 
 
 
+
+
     data = np.expand_dims(data, axis=1)
 
 
@@ -365,70 +373,69 @@ def deconvolve_data(data, img_dict, layer_list):
 
     for sample in range(data.shape[0]):
 
+            #print("Forward pass: sample #", sample, "layer: ", elem[1], "neuron: ", elem[2])
+        if not len(img_dict[sample]):
+            continue
 
-        if sample in img_dict:
-            print(sample)
-            for index ,elem in enumerate(img_dict[sample]):
+        deconv_layers[0][0].up([data[sample]])
+        for i in range(1, len(deconv_layers)):
 
-
-
-                print(elem)
-                #print("Forward pass: sample #", sample, "layer: ", elem[1], "neuron: ", elem[2])
-
-                deconv_layers[0][0].up([data[sample]])
-                for i in range(1, len(deconv_layers)):
-
-                    deconv_layers[i][0].up(deconv_layers[i - 1][0].up_data)
-                    print(deconv_layers[i])
-
-
-                output = deconv_layers[layer_idx[elem[1]]][0].up_data
+            deconv_layers[i][0].up(deconv_layers[i - 1][0].up_data)
+            print(deconv_layers[i])
 
 
 
+        print(sample)
+        for index ,elem in enumerate(img_dict[sample]):
 
-                if output.ndim == 2:
-                    feature_map = output[:, elem[2]]
+            print(elem)
+            output = deconv_layers[layer_idx[elem[1]]][0].up_data
+
+            # if elem[2] > output.shape[-1]:
+                # continue
+
+            if output.ndim == 2:
+                feature_map = output[:, elem[2]]
+            else:
+                feature_map = output[:, :, :, elem[2]]
+
+
+            max_activation = feature_map.max()
+
+            max_activation = feature_map.max()
+            temp = feature_map == max_activation
+            feature_map = feature_map * temp
+
+            output_temp = np.zeros_like(output)
+
+            if 2 == output.ndim:
+                output_temp[:, elem[2]] = feature_map
+            else:
+                output_temp[:, :, :, elem[2]] = feature_map
+
+
+            # Backward pass
+            deconv_layers[layer_idx[elem[1]]][0].down(output_temp)
+            for i in range(layer_idx[elem[1]]-1, - 1, -1):
+
+                deconv_layers[i][0].down(deconv_layers[i + 1][0].down_data)
+
+
+            deconv = deconv_layers[0][0].down_data
+            deconv = deconv.squeeze()
+
+
+            if isinstance(deconv_layers[layer_idx[elem[1]]][0].layer, Conv2D):
+
+                if elem[1] in deconv_dict.keys():
+                        deconv_dict[elem[1]][elem[2]-1].append((elem,deconv))
+
                 else:
-                    feature_map = output[:, :, :, elem[2]]
 
+                    num_feature_maps = deconv_layers[layer_idx[elem[1]]][0].layer.get_weights()[0].shape[3]
+                    deconv_dict.update({elem[1]: [ [] for x in range(num_feature_maps )]})
 
-                max_activation = feature_map.max()
-
-                max_activation = feature_map.max()
-                temp = feature_map == max_activation
-                feature_map = feature_map * temp
-
-                output_temp = np.zeros_like(output)
-
-                if 2 == output.ndim:
-                    output_temp[:, elem[2]] = feature_map
-                else:
-                    output_temp[:, :, :, elem[2]] = feature_map
-
-
-                # Backward pass
-                deconv_layers[layer_idx[elem[1]]][0].down(output_temp)
-                for i in range(layer_idx[elem[1]]-1, - 1, -1):
-
-                    deconv_layers[i][0].down(deconv_layers[i + 1][0].down_data)
-
-
-                deconv = deconv_layers[0][0].down_data
-                deconv = deconv.squeeze()
-
-
-                if isinstance(deconv_layers[layer_idx[elem[1]]][0].layer, Conv2D):
-
-                    if elem[1] in deconv_dict.keys():
-                            deconv_dict[elem[1]][elem[2]-1].append((elem,deconv))
-
-                    else:
-
-                        num_feature_maps = deconv_layers[layer_idx[elem[1]]][0].layer.get_weights()[0].shape[3]
-                        deconv_dict.update({elem[1]: [ [] for x in range(num_feature_maps )]})
-
-                        deconv_dict[elem[1]][elem[2]-1].append((elem, deconv))
+                    deconv_dict[elem[1]][elem[2]-1].append((elem, deconv))
 
 
 
@@ -506,9 +513,8 @@ def get_deconvolution(activation_save_path,deconv_save_path, data, layer_list):
     print("Activation_dict loaded")
 
     #img_dict = get_img_dict(activation_dict)
-    #pdb.set_trace()
-    #get_values(img_dict)
 
+    #get_values(img_dict)
     deconv = deconvolve_data(data, activation_dict, layer_list)
     pickle.dump(deconv, open(deconv_save_path, 'wb'))
     print('deconvolved images are dumped')
@@ -520,9 +526,8 @@ def deconvolution_loop(deconv_save_path):
 
 
         deconv = pickle.load(open(deconv_save_path,'rb'))
-        pdb.set_trace()
         print(deconv.keys())
-        #layer_name = input("Insert layer_name: ")
+        layer_name = input("Insert layer_name: ")
         #layer_name = 'block1_conv2'
         print ('There are {} units in layer {}'.format(len(deconv[layer_name]), layer_name))
         neuron_num = input("Insert unit number: ")
@@ -555,7 +560,7 @@ def deconvolution_loop(deconv_save_path):
         for idx in range(5):
 
             deprocess_img = deprocess_image(neuron[idx][1])
-            overlay_img = data[neuron[idx][0][0]]
+            overlay_img = copy.deepcopy(data[neuron[idx][0][0]])
 
             for i in range(deprocess_img.shape[0]):
                 for jd in range(deprocess_img.shape[1]):
@@ -654,7 +659,7 @@ if __name__ == '__main__':
     #visualize_neurons = False
 
     data, data_shape = load_data('act')
-    data_block1 = data[:100]
+    data_block1 = data[:1000]
     data_name = 'data_block1'
     model_type = 'VGG_16'
 
