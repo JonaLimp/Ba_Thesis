@@ -93,7 +93,7 @@ def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_chan
         x = layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1',kernel_regularizer=regularizers.l2(weight_decay))(visible)
         x = layers.BatchNormalization()(x)
         x = layers.Dropout(0.3)(x)
-        x = layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2',kernel_regularizer=regularizers.l2(weight_decay))(visible)
+        x = layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2',kernel_regularizer=regularizers.l2(weight_decay))(x)
         x = layers.BatchNormalization()(x)
         x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block1_pool')(x)
 

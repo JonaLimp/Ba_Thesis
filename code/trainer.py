@@ -138,7 +138,8 @@ class Trainer(object):
 
         # prepare dataset for hierachical labelling 
 
-        if self.label == "fine and coarse":
+        if self.label != "fine" or self.label != "coarse":
+
             y_1_train, y_2_train = np.split(self.y_train, [100], 1)
             y_1_train = np.squeeze(y_1_train, axis=2)
             y_2_train = np.squeeze(y_2_train, axis=2)
@@ -223,7 +224,7 @@ class Trainer(object):
                         )
 
                 else:
-
+                    pdb.set_trace()
                     history = self.model.fit_generator(
                         datagen.flow(
                             self.x_train, 
