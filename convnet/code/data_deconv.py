@@ -8,6 +8,7 @@ from keras import layers
 from keras.models import Model
 from keras import regularizers
 from scipy import stats
+from keras.metrics import top_k_categorical_accuracy
 from keras.applications.vgg16 import VGG16
 import keras
 from keras.datasets import cifar100
@@ -132,7 +133,9 @@ def BN_VGG(data_shape,weights_path=None):
     network = layers.Flatten()(x)
 
     network = layers.Dense(4096,activation = 'relu')(network)
+    network = layers.Dropout(0.5)(network)
     network = layers.Dense(4096,activation = 'relu')(network)
+    network = layers.Dropout(0.5)(network)
     network = layers.Dense(1024,activation = 'relu')(network)
 
     out = layers.Dense(100, activation="softmax")(network)
@@ -147,36 +150,36 @@ def BN_VGG(data_shape,weights_path=None):
     print("Loading weights...")
     model.load_weights(weights_path)
 
-    layer_list = []
+    # layer_list = []
 
 
-    for layer in model.layers:
-        layer_list.append(layer)
+    # for layer in model.layers:
+    #     layer_list.append(layer)
 
-    layer_list.pop(0)
-    In = layers.Input(shape=(data_shape[1], data_shape[2], data_shape[3]))
+    # layer_list.pop(0)
+    # In = layers.Input(shape=(data_shape[1], data_shape[2], data_shape[3]))
 
-    for idx,layer in enumerate(layer_list):
-
-
-        if idx == 0:
-            net = layer(In)
-            continue
-
-        if isinstance(layer, Conv2D):
-            net = layer (net)
-
-        elif isinstance(layer, MaxPooling2D):
-            net = layer (net)
-
-        elif isinstance(layer, Dense):
-            net = layer (net)
+    # for idx,layer in enumerate(layer_list):
 
 
+    #     if idx == 0:
+    #         net = layer(In)
+    #         continue
 
-    model = Model(inputs=In , outputs=net)
+    #     if isinstance(layer, Conv2D):
+    #         net = layer (net)
 
-    print("Model without dropout and batchnorm layers")
+    #     elif isinstance(layer, MaxPooling2D):
+    #         net = layer (net)
+
+    #     elif isinstance(layer, Dense):
+    #         net = layer (net)
+
+
+
+    # model = Model(inputs=In , outputs=net)
+
+    # print("Model without dropout and batchnorm layers")
 
     model.summary()
 
@@ -236,6 +239,7 @@ def load_data(data_type):
         return x_test, y_test
 
 def get_layer_list(model):
+    #retuns list of all layers in the model
 
     layer_list = []
     for idx in range(len(model.layers)-4):
@@ -244,6 +248,23 @@ def get_layer_list(model):
     return layer_list
 
     #TODO check for valid layers
+def get_pool_conv_layer_list(layer_list):
+
+    conv_pool_layer_list = [] 
+
+    for layer in layer_list:
+
+        print(layer)
+        if isinstance(layer[0], Conv2D):
+
+            conv_pool_layer_list.append(layer)
+        
+
+        if isinstance(layer[0], MaxPooling2D):
+
+            conv_pool_layer_list.append(layer)
+
+    return conv_pool_layer_list
 
 def get_top_k_activation(model, data, k=5):
 
@@ -318,7 +339,7 @@ def get_img_dict(activation_dict):
 def get_deconv_layer(layer_list):
 
     deconv_layers = []
-
+    pdb.set_trace()
     for layer in layer_list:
 
 
@@ -362,13 +383,7 @@ def deconvolve_data(data, img_dict, layer_list):
             index +=1
 
 
-
-
-
-
     data = np.expand_dims(data, axis=1)
-
-
 
 
     for sample in range(data.shape[0]):
@@ -389,6 +404,7 @@ def deconvolve_data(data, img_dict, layer_list):
         for index ,elem in enumerate(img_dict[sample]):
 
             print(elem)
+
             output = deconv_layers[layer_idx[elem[1]]][0].up_data
 
             # if elem[2] > output.shape[-1]:
@@ -650,17 +666,18 @@ def get_highest_act(act_save_path):
 if __name__ == '__main__':
 
     #model_load = False
-    get_act = False
-    get_deconv = False
+    get_act = True
+    get_deconv = True
     #load_deconv = False
     deconv_loop = False
     highest_act = False
-    model_test = True
+    model_test = False
     #visualize_neurons = False
 
     data, data_shape = load_data('act')
     data_block1 = data[:1000]
-    data_name = 'test_data'
+    #data_name = 'test_data'
+    data_name = 'fine_data'
     model_type = 'BN_VGG'
 
     #./ckpt/VGG16_miss_max_augmented_fine_#1 run one MPL missing, DA  _fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64'
@@ -680,12 +697,12 @@ if __name__ == '__main__':
     # get activations for each neuron in each layer for given dataset
     # and save them as pickle file
     if get_act == True:
-        get_activations(activation_save_path, layer_list, data_block1, data_shape)
+        get_activations(activation_save_path, layer_list, data, data_shape)
 
     # get deconvs for each neuron in each layer for given dataset
     # and save them as pickle file
     if get_deconv == True:
-        get_deconvolution(activation_save_path, deconv_save_path, data_block1, layer_list)
+        get_deconvolution(activation_save_path, deconv_save_path, data, get_pool_conv_layer_list(layer_list))
 
     if highest_act == True:
         get_highest_act(activation_save_path)
