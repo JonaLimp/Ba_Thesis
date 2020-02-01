@@ -687,6 +687,7 @@ if __name__ == '__main__':
         test_model(model)
 
     layer_list = get_layer_list(model)
+    layer_list = get_pool_conv_layer_list(layer_list)
     #layer_list.pop(0)
     #layer_list =layer_list[:-10]
     #pdb.set_trace()
@@ -702,7 +703,7 @@ if __name__ == '__main__':
     # get deconvs for each neuron in each layer for given dataset
     # and save them as pickle file
     if get_deconv == True:
-        get_deconvolution(activation_save_path, deconv_save_path, data, get_pool_conv_layer_list(layer_list))
+        get_deconvolution(activation_save_path, deconv_save_path, data, layer_list)
 
     if highest_act == True:
         get_highest_act(activation_save_path)
@@ -714,6 +715,8 @@ if __name__ == '__main__':
 
 
 
+
+    def (deconv_save_path, )
 
 
 
