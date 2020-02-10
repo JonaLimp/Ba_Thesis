@@ -75,7 +75,7 @@ def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_chan
         # Block 5
         x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv1')(x)
         x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv2')(x)
-        network = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv3')(x)
+        x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv3')(x)
 
         network = layers.Flatten()(x)
 
@@ -87,7 +87,7 @@ def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_chan
 
 
     elif type =='VGG16_BN':
-        
+
         visible = layers.Input(shape=(img_shape[1], img_shape[2], img_shape[3]))
         # Block 1
         x = layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1',kernel_regularizer=regularizers.l2(weight_decay))(visible)

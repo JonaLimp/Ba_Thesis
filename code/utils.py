@@ -1,18 +1,13 @@
 import numpy as np
 import scipy.optimize as opt
 import pdb
-import keras
-from keras.datasets import cifar100
-from keras.applications.vgg16 import preprocess_input #TODO maybe not needed
-from keras.preprocessing import image
-from keras.models import Sequential
-from keras.layers import Flatten, Dense, Dropout, Activation
-from keras import layers
-from keras.layers.convolutional import Conv2D, MaxPooling2D, ZeroPadding2D
-from keras import layers
-from keras.models import Model
-
-import code.model as m
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.datasets import cifar100
+from model import create_model
+from tensorflow.keras import models
+import tensorflow.keras.backend as K
+import os
 
 def twoD_GaussianScaledAmp(xy, xo, yo, sigma, amplitude, offset):
     """Function to fit, returns 2D gaussian function as 1D array"""
@@ -42,8 +37,9 @@ def getFWHM_GaussianFitScaledAmp(img):
                                    img_scaled.ravel(), p0=initial_guess,
                                    bounds = ((img.shape[1]*0.4, img.shape[0]*0.4, 1, 0.5, -0.1),
                                          (img.shape[1]*0.6, img.shape[0]*0.6, img.shape[1], 1.5, 0.5)))
-    except:
-        return 0
+    except Exception as e:
+        print(e)
+        return np.nan
     xcenter, ycenter, sigma, amp, offset = popt[0], popt[1], popt[2], popt[3], popt[4]
     FWHM = np.abs(4*sigma*np.sqrt(-0.5*np.log(0.5)))
     return FWHM
@@ -51,24 +47,30 @@ def getFWHM_GaussianFitScaledAmp(img):
 #calling example: img is your image
 #FWHM = getFWHM_GaussianFitScaledAmp(img)
 
-def load_model(weights_path,data_shape, model_type, label):
+def load_model(data_shape, weights_path,model_type, label):
     """
     Load and compile VGG model
     args: weights_path (str) trained weights file path
     returns model (Keras model)
     """
-    # either VGG16(), VGG16_keras or BN_VGG
-    if model_type == 'VGG_16':
-        model = VGG_16_keras(weights_path,data_shape)
+    # # either VGG16(), VGG16_keras or BN_VGG
+    # if model_type == 'VGG_16':
+    #     model = VGG_16_keras(weights_path,data_shape)
 
-    if model_type == 'BN_VGG':
-        model = BN_VGG(weights_path,data_shape)
-    if model_type == 'code_BN_VGG':
-        model = create_model(type='BN_VGG',pretrained = False, img_shape = data_shape, n_hidden = [4096,4096,1024], dropout = 0.5,
-         label = label, arr_channels = [], VGG16_top = False, use_gen = False, dropout_arr = [1,1,0], weight_decay = 0.0005)
+    # if model_type == 'BN_VGG':
+    #     model = BN_VGG(weights_path,data_shape)
+    # if model_type == 'code_BN_VGG':
+    #     model = create_model(type='VGG16_BN',pretrained = False, img_shape = data_shape, n_hidden = [4096,4096,1024], dropout = 0.5,
+    #      label = label, arr_channels = [], VGG16_top = False, use_gen = False, dropout_arr = [1,1,0], weight_decay = 0.0005)
+
+
+    print("Loading weights...")
+    pdb.set_trace()
+    model = models.load_model(weights_path)
 
     model.compile(optimizer="sgd", loss='categorical_crossentropy', metrics = ["accuracy", "top_k_categorical_accuracy"])
-    #pdb.set_trace()
+    model.summary()
+
     return model
 
 def one_hot_encoding(y_train, y_test, classes):

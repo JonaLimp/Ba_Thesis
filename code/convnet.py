@@ -1,10 +1,11 @@
 import numpy as np
 from PIL import Image
-from keras.layers import Input, InputLayer, Flatten, Activation,Dense
-from keras.layers import Conv2D, MaxPool2D
-from keras.layers import Activation, Dense
-from keras import layers
-from keras.models import Model
+
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+
+from tensorflow.keras.models import Model
 import keras.backend as K
 
 import pdb
@@ -57,8 +58,8 @@ class DConvolution2D(object):
 
 		#Set up_func for DConV
 		
-		input_ = Input(shape = layer.input_shape[1:])
-		output = Conv2D.from_config(config)(input_)
+		input_ = layers.Input(shape = layer.input_shape[1:])
+		output = layers.Conv2D.from_config(config)(input_)
 		up_func = Model(input_,output)
 		up_func.layers[1].set_weights(weights)
 		self.up_func = up_func
@@ -71,8 +72,8 @@ class DConvolution2D(object):
 		config['filters'] = W.shape[3]
 		config["kernel_size"] = (W.shape[0], W.shape[1])
 		b = np.zeros(config['filters'])
-		input_ = Input(shape = layer.output_shape[1:])
-		output = Conv2D.from_config(config)(input_)
+		input_ = layers.Input(shape = layer.output_shape[1:])
+		output = layers.Conv2D.from_config(config)(input_)
 		down_func = Model(input_, output)
 		down_func.layers[1].set_weights((W,b))
 		self.down_func = down_func 

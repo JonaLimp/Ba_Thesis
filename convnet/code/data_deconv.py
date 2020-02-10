@@ -11,8 +11,9 @@ from scipy import stats
 from keras.metrics import top_k_categorical_accuracy
 from keras.applications.vgg16 import VGG16
 import keras
-from keras.datasets import cifar100
+from scipy.ndimage import shift
 import matplotlib.pyplot as plt
+from utils import *
 import numpy as np
 from PIL import Image
 import keras.backend as K
@@ -23,6 +24,7 @@ import time
 import pickle
 import operator
 import copy
+import os
 
 def VGG_16_keras(data_shape,weights_path=None):
 
@@ -187,56 +189,7 @@ def BN_VGG(data_shape,weights_path=None):
 
     return model
 
-def load_model(weights_path,data_shape, model_type):
-    """
-    Load and compile VGG model
-    args: weights_path (str) trained weights file path
-    returns model (Keras model)
-    """
-    # either VGG16(), VGG16_keras or BN_VGG
-    if model_type == 'VGG_16':
-        model = VGG_16_keras(weights_path,data_shape)
 
-    if model_type == 'BN_VGG':
-        model = BN_VGG(weights_path,data_shape)
-
-    model.compile(optimizer="sgd", loss='categorical_crossentropy', metrics = ["accuracy", "top_k_categorical_accuracy"])
-    #pdb.set_trace()
-    return model
-
-def one_hot_encoding(y_train, y_test, classes):
-
-    y_train = keras.utils.to_categorical(y_train, classes)
-    y_test = keras.utils.to_categorical(y_test, classes)
-    return y_train, y_test
-
-
-def load_data(data_type):
-    classes = 100
-    (x_train, y_train), (x_test, y_test) = cifar100.load_data('fine')
-    y_train, y_test = one_hot_encoding(y_train, y_test, classes)
-
-    width, height, channels = x_train.shape[1], x_train.shape[2], x_train.shape[3]
-    x_train = x_train.reshape((x_train.shape[0], width, height, channels))
-
-    width, height, channels = x_test.shape[1], x_test.shape[2], x_test.shape[3]
-    x_test = x_test.reshape((x_test.shape[0], width, height, channels))
-
-    x_train = x_train.astype("float32")
-    x_test = x_test.astype("float32")
-
-    x_train /= 255.0
-    x_test /= 255.0
-
-    if data_type == 'act':
-
-        data = x_test
-        data_shape = data.shape
-
-        return data, data_shape
-
-    if data_type == 'test':
-        return x_test, y_test
 
 def get_layer_list(model):
     #retuns list of all layers in the model
@@ -663,6 +616,65 @@ def get_highest_act(act_save_path):
     #pdb.set_trace()
 
 
+
+
+def translate_representations(deconv_save_path, layer_list, model, num_neurons,steps):
+    
+    deconv = pickle.load(open(deconv_save_path,'rb'))
+    layer_FWHM_dict = {}
+
+    for key, n_list in deconv.items():
+        FWHM_list = []
+        rand_neurons = np.random.choice(len(n_list), num_neurons, replace=False)
+        
+        for neuron_idx in rand_neurons:
+            neuron = n_list[neuron_idx][0]
+            if not neuron[0][3]:
+                neuron = n_list[neuron_idx+1][0]
+            act_array = shift_and_activate(neuron,model,key,neuron_idx,steps)
+            FWHM_list.append(getFWHM_GaussianFitScaledAmp(act_array))
+            print(np.isnan(act_array).any())
+        layer_FWHM_dict.update({key: np.mean(FWHM_list)})
+
+    pickle.dump(deconv, open(deconv_save_path, 'wb'))
+    print('deconvolved images are dumped')
+
+    return layer_FWHM_dict
+
+
+
+def shift_and_activate(rep,model,layer,neuron_idx,steps):
+
+    
+    activation_model = Model(inputs=model.input, outputs=model.get_layer(layer).output)
+    act_array = np.zeros((2*steps+1,2*steps+1))
+    
+    #rep[0][3] is the activation of the representation
+    # act_array[steps,steps]= activation_model.predict()
+    directions = ((0,1,0),(0,-1,0),(1,0,0),(-1,0,0))
+    for direction in directions:
+        for step in range(steps):
+            cord = np.array(direction)*step
+           
+            input_rep = shift(rep[1],cord,mode='nearest')
+            out = activation_model.predict(input_rep[None,...])
+
+            act_array[cord[0]+steps,cord[1]+steps] = out[...,neuron_idx].sum()
+
+    return act_array
+
+
+
+
+
+
+
+
+
+
+    pdb.set_trace()
+    pass
+
 if __name__ == '__main__':
 
     #model_load = False
@@ -672,16 +684,18 @@ if __name__ == '__main__':
     deconv_loop = False
     highest_act = False
     model_test = False
+    trans_rep = True
     #visualize_neurons = False
 
     data, data_shape = load_data('act')
-    data_block1 = data[:1000]
+    data = data[:100]
     #data_name = 'test_data'
     data_name = 'fine_data'
     model_type = 'BN_VGG'
+    label = 'fine'
 
     #./ckpt/VGG16_miss_max_augmented_fine_#1 run one MPL missing, DA  _fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64'
-    model = load_model(data_shape,'./ckpt/Model with  Batch Normalization_#1 run BN_fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64_best_val_loss', model_type)
+    model = load_model(data_shape,'./ckpt/Model with  Batch Normalization_#1 run BN_fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64_best_val_loss', model_type,label)
 
     if model_test == True:
         test_model(model)
@@ -691,8 +705,13 @@ if __name__ == '__main__':
     #layer_list.pop(0)
     #layer_list =layer_list[:-10]
     #pdb.set_trace()
-    activation_save_path = './convnet/Data/activation_dict_{}.pickle'.format(data_name)
-    deconv_save_path = './convnet/Data/deconv_dict_{}.pickle'.format(data_name)
+    dir_path = './convnet/Data/{}/'.format(data_name)
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+
+    activation_save_path = os.path.join(dir_path, 'activation_dict_{}.pickle'.format(data_name,data_name))
+    deconv_save_path = os.path.join(dir_path, 'deconv_dict_{}.pickle'.format(data_name,data_name))
+    trans_rep_save_path = os.path.join(dir_path,'trans_rep_dict_{}.pickle'.format(data_name,data_name))
 
 
     # get activations for each neuron in each layer for given dataset
@@ -712,11 +731,11 @@ if __name__ == '__main__':
     if deconv_loop == True:
         deconvolution_loop(deconv_save_path)
 
+    if trans_rep == True:
+        translate_representations( deconv_save_path, layer_list, model,50,10)
 
 
 
-
-    def (deconv_save_path, )
 
 
 
