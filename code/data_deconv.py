@@ -27,6 +27,7 @@ import pickle
 import operator
 import copy
 import os
+import math
 
 #just for testing VGG16 Representations
 
@@ -562,19 +563,29 @@ def translate_representations(deconv_save_path,trans_rep_save_path, layer_list, 
     deconv = pickle.load(open(deconv_save_path,'rb'))
     layer_FWHM_dict = {}
 
+    # n_list contains feature_maps
     for key, n_list in deconv.items():
         FWHM_list = []
         rand_neurons = np.random.choice(len(n_list), num_neurons, replace=False)
-
+        pdb.set_trace()
         for neuron_idx in rand_neurons:
+
             neuron = n_list[neuron_idx][0]
+            print(neuron[0])
             if not neuron[0][3]: #if activation is zero skip that neuron
                 neuron = n_list[neuron_idx+1][0]
             # rep = data[neuron[0][0]] #at tuple position zero is image index
             rep = neuron[1] #at position 1 is the deconvolved representation
             act_array = shift_and_activate(rep,model,key,neuron_idx,steps)
-            FWHM_list.append(getFWHM_GaussianFitScaledAmp(act_array))
-        layer_FWHM_dict.update({key: np.nanmedian(FWHM_list)})
+            # new
+            FWHM = getFWHM_GaussianFitScaledAmp(act_array)
+            if not math.isnan(FWHM):
+                FWHM_list.append(FWHM)
+            # FWHM_list.append(getFWHM_GaussianFitScaledAmp(act_array))
+
+            print(np.mean(FWHM_list))
+        layer_FWHM_dict.update({key: np.nanmean(FWHM_list)})
+        print('layer {} translated with {} randomly chosen neurons and {} steps.'.format(key,num_neurons,steps))
 
     pickle.dump(layer_FWHM_dict, open(trans_rep_save_path, 'wb'))
     print('transposed images are dumped')
@@ -661,13 +672,13 @@ def shift_and_activate(rep,model,layer,neuron_idx,steps):
 if __name__ == '__main__':
 
     #model_load = False
-    get_act = False
-    get_deconv = False
+    get_act = True
+    get_deconv = True
     #load_deconv = False
     deconv_loop = False
     highest_act = False
     model_test = False
-    trans_rep = True
+    trans_rep = False
 
 
 
@@ -695,10 +706,10 @@ if __name__ == '__main__':
     #layer_list.pop(0)
     #layer_list =layer_list[:-10]
     #pdb.set_trace()
-    # dir_path = './convnet/Data/{}/'.format(data_name)
-    dir_path = './convnet/Data/'
-    # if not os.path.exists(dir_path):
-    #     os.makedirs(dir_path)
+    dir_path = './convnet/Data/{}/'.format(data_name)
+    # dir_path = './convnet/Data/'
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
 
     activation_save_path = os.path.join(dir_path, 'activation_dict_{}.pickle'.format(data_name,data_name))
     deconv_save_path = os.path.join(dir_path, 'deconv_dict_{}.pickle'.format(data_name,data_name))
@@ -723,7 +734,7 @@ if __name__ == '__main__':
         deconvolution_loop(deconv_save_path)
 
     if trans_rep == True:
-        translate_representations(deconv_save_path, trans_rep_save_path, layer_list, model, data, 15,15)
+        translate_representations(deconv_save_path, trans_rep_save_path, layer_list, model, data, 60,15)
 
 
 

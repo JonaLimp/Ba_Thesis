@@ -8,6 +8,7 @@ from model import create_model
 from tensorflow.keras import models
 import tensorflow.keras.backend as K
 import os
+from PIL import Image
 
 def twoD_GaussianScaledAmp(xy, xo, yo, sigma, amplitude, offset):
     """Function to fit, returns 2D gaussian function as 1D array"""
@@ -124,6 +125,16 @@ def deprocess_image(x):
         x = x.transpose((1, 2, 0))
     x = np.clip(x, 0, 255).astype('uint8')
     return x
+
+def postprocess(deconv):
+    if K.image_data_format == 'channels_first':
+        deconv = np.transpose(deconv, (1, 2, 0))
+    deconv = deconv - deconv.min()
+    deconv *= 1.0 / (deconv.max() + 1e-8)
+    deconv = deconv[:, :, ::-1]
+    uint8_deconv = (deconv * 255).astype(np.uint8)
+    img = Image.fromarray(uint8_deconv, 'RGB')
+    return img
 """
                 idx = 1
 
