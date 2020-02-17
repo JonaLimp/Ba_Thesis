@@ -1,5 +1,5 @@
 NAME: 'Model_with_Batch_Normalization_coarse_label'
-NOTE: '#1 run BN'
+NOTE: 'Epochs:300_LR=1.e-4'
 
 
 RESUME: False
@@ -29,7 +29,7 @@ MODEL:
 
 TRAIN:
     IS_TRAIN: True
-    EPOCHS: 1000
+    EPOCHS: 300
     BATCH_SIZE: 64
     INIT_LR: 1.e-4
     MOMENTUM: 0.9

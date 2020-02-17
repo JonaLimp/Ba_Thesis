@@ -159,16 +159,16 @@ class Trainer(object):
 
         if self.data_aug == True:
 
-            # datagen = ImageDataGenerator(
-            #     featurewise_center=self.featurewise_center,
-            #     featurewise_std_normalization=self.featurewise_std_normalization,
-            #     rotation_range=self.rotation_range,
-            #     width_shift_range=self.width_shift_range,
-            #     height_shift_range=self.height_shift_range,
-            #     horizontal_flip=self.horizontal_flip
-            #     )
+            datagen = ImageDataGenerator(
+                featurewise_center=self.featurewise_center,
+                featurewise_std_normalization=self.featurewise_std_normalization,
+                rotation_range=self.rotation_range,
+                width_shift_range=self.width_shift_range,
+                height_shift_range=self.height_shift_range,
+                horizontal_flip=self.horizontal_flip
+                )
             # datagen = get_datagen()
-            #datagen.fit(self.x_train)
+            datagen.fit(self.x_train)
             pass
 
         # help params 

@@ -7,8 +7,12 @@ from tensorflow.keras.datasets import cifar100
 from model import create_model
 from tensorflow.keras import models
 import tensorflow.keras.backend as K
+import matplotlib.pyplot as plt
+from scipy import stats
 import os
+import copy
 from PIL import Image
+import pickle
 
 def twoD_GaussianScaledAmp(xy, xo, yo, sigma, amplitude, offset):
     """Function to fit, returns 2D gaussian function as 1D array"""
@@ -82,8 +86,8 @@ def one_hot_encoding(y_train, y_test, classes):
 
 
 def load_data(data_type):
-    classes = 100
-    (x_train, y_train), (x_test, y_test) = cifar100.load_data('fine')
+    classes = 20
+    (x_train, y_train), (x_test, y_test) = cifar100.load_data('coarse')
     y_train, y_test = one_hot_encoding(y_train, y_test, classes)
 
     width, height, channels = x_train.shape[1], x_train.shape[2], x_train.shape[3]
@@ -167,7 +171,7 @@ def get_values(img_dict):
 
                 print(e[2])
 
-def deconvolution_loop(deconv_save_path):
+def deconvolution_loop(deconv_save_path,data):
 
     while True:
 

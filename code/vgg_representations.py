@@ -2,17 +2,24 @@ from utils import *
 from data_deconv import *
 import pandas as pd
 from keras.applications import imagenet_utils
+from keras.preprocessing import image
+from keras.applications.vgg16 import preprocess_input
 import os
 
+from numpy.random import seed
+seed(42)
+from tensorflow import set_random_seed
+set_random_seed(42)
 
 def VGG16_representation(img_name):
-
-    dir_path = './convnet/Data/VGG16/{}/'.format(img_name[:-4])
+    image_name = img_name
+    img_name =img_name[:-4]
+    dir_path = './convnet/Data/VGG16/{}/'.format(img_name)
     
-    activation_save_path = os.path.join(dir_path, 'activation_dict_VGG.pickle')
-    deconv_save_path = os.path.join(dir_path, 'deconv_dict_VGG.pickle')
-    trans_rep_save_path = os.path.join(dir_path,'trans_rep_dict_VGG.pickle')
-    csv_save_path = os.path.join(dir_path, 'csv_VGG.pickle')
+    activation_save_path = os.path.join(dir_path, 'activation_dict_VGG_{}.pickle'.format(img_name))
+    deconv_save_path = os.path.join(dir_path, 'deconv_dict_VGG_{}.pickle'.format(img_name))
+    trans_rep_save_path = os.path.join(dir_path,'trans_rep_dict_VGG_{}.pickle'.format(img_name))
+    csv_save_path = os.path.join(dir_path, 'csv_VGG_{}.pickle'.format(img_name))
     model = VGG16(weights='imagenet', include_top=True)
     layer_list = get_pool_conv_layer_list(get_layer_list(model))
 
@@ -20,7 +27,7 @@ def VGG16_representation(img_name):
         os.makedirs(dir_path)
 
     pdb.set_trace()
-    img_path = os.path.join(os.getcwd(), 'convnet/{}'.format(img_name))
+    img_path = os.path.join(os.getcwd(), 'convnet/{}'.format(image_name))
     img = image.load_img(img_path, target_size=(224, 224))
     x = image.img_to_array(img)
     x = np.expand_dims(x, axis=0)
@@ -105,10 +112,10 @@ def visualize_vgg_representations(img_name):
 
 if __name__ == '__main__':
 
-    img_name = 'cat.jpg'
+    img_name = 'tree.jpg'
 
     VGG16_rep = True
-    visualize_vgg = True
+    visualize_vgg = False
 
     if VGG16_rep ==True:
         VGG_rep_dict = VGG16_representation(img_name)

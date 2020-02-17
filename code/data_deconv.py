@@ -29,126 +29,13 @@ import copy
 import os
 import math
 
-#just for testing VGG16 Representations
 
-from tensorflow.keras.applications.vgg16 import VGG16
-from tensorflow.keras.applications.vgg16 import preprocess_input
-import pandas as pd
-
-
-
-# def BN_VGG(data_shape,weights_path=None):
-
-#     weight_decay = 0.5
-#     visible = layers.Input(shape=(data_shape[1], data_shape[2], data_shape[3]))
-
-#     # Block 1
-#     x = layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1',kernel_regularizer=regularizers.l2(weight_decay))(visible)
-#     x = layers.BatchNormalization()(x)
-#     x = layers.Dropout(0.3)(x)
-#     x = layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2',kernel_regularizer=regularizers.l2(weight_decay))(x)
-#     x = layers.BatchNormalization()(x)
-#     x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block1_pool')(x)
-
-#     #Block 2
-#     x = layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv1', kernel_regularizer=regularizers.l2(weight_decay))(x)
-#     x = layers.BatchNormalization()(x)
-#     x = layers.Dropout(0.4)(x)
-#     x = layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv2', kernel_regularizer=regularizers.l2(weight_decay))(x)
-#     x = layers.BatchNormalization()(x)
-#     x = layers.MaxPooling2D((2,2), strides= (2,2), name ='block2_pool')(x)
-
-#     # Block 3
-#     x = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv1', kernel_regularizer=regularizers.l2(weight_decay))(x)
-#     x = layers.BatchNormalization()(x)
-#     x = layers.Dropout(0.4)(x)
-#     x = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv2', kernel_regularizer=regularizers.l2(weight_decay))(x)
-#     x = layers.BatchNormalization()(x)
-#     x = layers.Dropout(0.4)(x)
-#     x = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv3', kernel_regularizer=regularizers.l2(weight_decay))(x)
-#     x = layers.BatchNormalization()(x)
-#     x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool')(x)
-
-#     # Block 4
-#     x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv1', kernel_regularizer=regularizers.l2(weight_decay))(x)
-#     x = layers.BatchNormalization()(x)
-#     x = layers.Dropout(0.4)(x)
-#     x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv2', kernel_regularizer=regularizers.l2(weight_decay))(x)
-#     x = layers.BatchNormalization()(x)
-#     x = layers.Dropout(0.4)(x)
-#     x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv3', kernel_regularizer=regularizers.l2(weight_decay))(x)
-#     x = layers.BatchNormalization()(x)
-#     x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(x)
-
-#     # Block 5
-#     x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv1', kernel_regularizer=regularizers.l2(weight_decay))(x)
-#     x = layers.BatchNormalization()(x)
-#     x = layers.Dropout(0.4)(x)
-#     x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv2', kernel_regularizer=regularizers.l2(weight_decay))(x)
-#     x = layers.BatchNormalization()(x)
-#     x = layers.Dropout(0.4)(x)
-#     x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv3', kernel_regularizer=regularizers.l2(weight_decay))(x)
-#     x = layers.BatchNormalization()(x)
-#     x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
-#     network = layers.Dropout(0.5)(x)
-
-#     network = layers.Flatten()(x)
-
-#     network = layers.Dense(4096,activation = 'relu')(network)
-#     network = layers.Dropout(0.5)(network)
-#     network = layers.Dense(4096,activation = 'relu')(network)
-#     network = layers.Dropout(0.5)(network)
-#     network = layers.Dense(1024,activation = 'relu')(network)
-
-#     out = layers.Dense(100, activation="softmax")(network)
-
-#     model = Model(inputs=visible , outputs=out)
+from numpy.random import seed
+seed(42)
+from tensorflow import set_random_seed
+set_random_seed(42)
 
 
-
-
-#     model.summary()
-#     pdb.set_trace()
-
-#     print("Loading weights...")
-#     model.load_weights(weights_path)
-
-    # layer_list = []
-
-
-    # for layer in model.layers:
-    #     layer_list.append(layer)
-
-    # layer_list.pop(0)
-    # In = layers.Input(shape=(data_shape[1], data_shape[2], data_shape[3]))
-
-    # for idx,layer in enumerate(layer_list):
-
-
-    #     if idx == 0:
-    #         net = layer(In)
-    #         continue
-
-    #     if isinstance(layer, Conv2D):
-    #         net = layer (net)
-
-    #     elif isinstance(layer, MaxPooling2D):
-    #         net = layer (net)
-
-    #     elif isinstance(layer, Dense):
-    #         net = layer (net)
-
-
-
-    # model = Model(inputs=In , outputs=net)
-
-    # print("Model without dropout and batchnorm layers")
-
-   # model.summary()
-
-    #pdb.set_trace()
-
-   # return model
 
 def load_model(data_shape, weights_path,model_type, label):
     """
@@ -277,6 +164,7 @@ def get_img_dict(activation_dict):
 
 def get_deconv_layer(layer_list):
 
+    counter = 0
     deconv_layers = []
     for layer in layer_list:
 
@@ -304,9 +192,13 @@ def deconvolve_data(data, img_dict, layer_list):
 
     deconv_layers = get_deconv_layer(layer_list)
     layer_idx = {}
+    
+    #help params to find zero arrays
     index = 0
+    zero_deconv = []
 
 
+    #get index 
     for layer in layer_list:
 
         if isinstance(layer[0], layers.Conv2D):
@@ -328,6 +220,8 @@ def deconvolve_data(data, img_dict, layer_list):
     for sample in range(data.shape[0]):
 
             #print("Forward pass: sample #", sample, "layer: ", elem[1], "neuron: ", elem[2])
+
+        #check if sample is not under top k samples
         if not len(img_dict[sample]):
             continue
 
@@ -379,6 +273,11 @@ def deconvolve_data(data, img_dict, layer_list):
             deconv = deconv_layers[0][0].down_data
             deconv = deconv.squeeze()
 
+            if not deconv.any():
+                zero_deconv.append(elem)
+                counter =+ 1
+                print('zero again')
+
 
             if isinstance(deconv_layers[layer_idx[elem[1]]][0].layer, layers.Conv2D):
 
@@ -395,7 +294,7 @@ def deconvolve_data(data, img_dict, layer_list):
 
 
 
-
+    pdb.set_trace()
 
 
     return deconv_dict
@@ -519,10 +418,10 @@ def get_deconvolution(activation_save_path,deconv_save_path, data, layer_list):
 
 def test_model(model):
 
-    model = load_model(data_shape,'./Data/tester')
+
 
     x_test, y_test = load_data('test')
-    result = model.evaluate(x_test, y_test)
+    results = model.evaluate(x_test, y_test)
     print(results)
 
 
@@ -558,24 +457,31 @@ def test_model(model):
 
 
 
-def translate_representations(deconv_save_path,trans_rep_save_path, layer_list, model, data, num_neurons,steps):
+def translate_representations(deconv_save_path,dir_path,data_name, layer_list, model, data, num_neurons,steps,_trans_input_type):
 
+    trans_rep_save_path = os.path.join(dir_path,'trans_rep_dict_{}_num_neurons:{}_steps:{}_trans_input_type:{}.pickle'.format(data_name,num_neurons,steps,trans_input_type))
     deconv = pickle.load(open(deconv_save_path,'rb'))
     layer_FWHM_dict = {}
+
 
     # n_list contains feature_maps
     for key, n_list in deconv.items():
         FWHM_list = []
-        rand_neurons = np.random.choice(len(n_list), num_neurons, replace=False)
-        pdb.set_trace()
+        
+        rand_neurons = np.random.choice(len(n_list), num_neurons, replace=False) # 
+
         for neuron_idx in rand_neurons:
 
             neuron = n_list[neuron_idx][0]
             print(neuron[0])
             if not neuron[0][3]: #if activation is zero skip that neuron
                 neuron = n_list[neuron_idx+1][0]
-            # rep = data[neuron[0][0]] #at tuple position zero is image index
-            rep = neuron[1] #at position 1 is the deconvolved representation
+            
+            if trans_input_type == 'samples':
+                rep = data[neuron[0][0]] #at tuple position zero is image index
+            else:   
+                rep = neuron[1] #at position 1 is the deconvolved representation
+
             act_array = shift_and_activate(rep,model,key,neuron_idx,steps)
             # new
             FWHM = getFWHM_GaussianFitScaledAmp(act_array)
@@ -588,7 +494,7 @@ def translate_representations(deconv_save_path,trans_rep_save_path, layer_list, 
         print('layer {} translated with {} randomly chosen neurons and {} steps.'.format(key,num_neurons,steps))
 
     pickle.dump(layer_FWHM_dict, open(trans_rep_save_path, 'wb'))
-    print('transposed images are dumped')
+    print('translated images are dumped')
 
     pdb.set_trace()
     return layer_FWHM_dict
@@ -672,31 +578,42 @@ def shift_and_activate(rep,model,layer,neuron_idx,steps):
 if __name__ == '__main__':
 
     #model_load = False
-    get_act = True
-    get_deconv = True
+    get_act = False
+    get_deconv = False
     #load_deconv = False
     deconv_loop = False
     highest_act = False
-    model_test = False
-    trans_rep = False
+    model_test = True
 
+    trans_rep = True
+
+    # input for translation, either samples or deconvolved representations
+    trans_input_type = 'representations'
+    num_neurons = 60
+    steps = 15
 
 
     data, data_shape = load_data('act')
     #data = data[:100]
     #data_name = 'test_data'
-    data_name = 'fine_data'
-    model_type = 'code_BN_VGG'
-    label = 'fine'
 
-    weights_path = 'ckpt/Model with  Batch Normalization_#1 run BN_fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64_best_val_loss'
-    # weights_path = 'ckpt/tester_test_fine_LR=0.03_HIDDEN_[2048, 2048]_BS=16_best_val_loss.h5'
+    #Set different data_name for different models 
+    data_name = 'coarse_data'
+    model_type = 'code_BN_VGG'
+    label = 'coarse'
+
+    #Model with fine label
+    #weights_path = 'ckpt/Model_with_Batch_Normalization/Model_with_Batch_Normalization_Max_epochs:_fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64_best_val_loss.h5'
+    
+    #Model with coarse label
+    weights_path = 'ckpt//Model_with_Batch_Normalization_coarse_label/Model_with_Batch_Normalization_coarse_label_Epochs:300_LR=1.e-4_coarse_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64_best_val_loss.h5'
     weights_path = os.path.join(os.getcwd(),weights_path)
 
 
 
     #./ckpt/VGG16_miss_max_augmented_fine_#1 run one MPL missing, DA  _fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64'
     model = load_model(data_shape,weights_path, model_type,label)
+    pdb.set_trace()
 
     if model_test == True:
         test_model(model)
@@ -713,7 +630,7 @@ if __name__ == '__main__':
 
     activation_save_path = os.path.join(dir_path, 'activation_dict_{}.pickle'.format(data_name,data_name))
     deconv_save_path = os.path.join(dir_path, 'deconv_dict_{}.pickle'.format(data_name,data_name))
-    trans_rep_save_path = os.path.join(dir_path,'trans_rep_dict_{}.pickle'.format(data_name,data_name))
+
 
 
     # get activations for each neuron in each layer for given dataset
@@ -731,10 +648,10 @@ if __name__ == '__main__':
 
     #visualize specific neurons
     if deconv_loop == True:
-        deconvolution_loop(deconv_save_path)
+        deconvolution_loop(deconv_save_path,data)
 
     if trans_rep == True:
-        translate_representations(deconv_save_path, trans_rep_save_path, layer_list, model, data, 60,15)
+        translate_representations(deconv_save_path,dir_path, data_name,layer_list, model, data, num_neurons,steps,trans_input_type)
 
 
 
