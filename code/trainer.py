@@ -11,7 +11,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import yaml
 import os
 
-import pdb
+import ipdb
 
 
 class Trainer(object):
@@ -169,7 +169,7 @@ class Trainer(object):
                 )
             # datagen = get_datagen()
             datagen.fit(self.x_train)
-            pass
+            
 
         # help params 
 
@@ -237,7 +237,7 @@ class Trainer(object):
                         #     self.x_train, 
                         #     dict_y_train, 
                         #     batch_size=self.batchsize)
-                        self.generator_two_outputs(self.x_train, dict_y_train['coarse'], dict_y_train['coarse']),
+                        self.generator_two_outputs(self.x_train, dict_y_train['fine'], dict_y_train['coarse'], datagen, self.batchsize),
                         # steps_per_epoch=None,
                         steps_per_epoch= self.x_train.shape[0] // self.batchsize,
 
@@ -375,20 +375,23 @@ class Trainer(object):
             return False
         return True
 
-    def generator_two_outputs(self,X , y_coarse, y_fine):
+    def generator_two_outputs(self,X , y_fine, y_coarse, datagen, batch_size):
 
-        pdb.set_trace()
-        datagen = get_datagen()
-        datagen.fit(self.x_train)
-
-        gen_coarse = datagen.flow(X, y_coarse, seed=7, batch_size=batch_size)
-        gen_fine = datagen.flow(X, y_fine, seed= 7, batch_size=batch_size)
-
-        pdb.set_trace()
-        Y_coarse_sample = gen_coarse.next()
-        Y_fine_sample = gen_fine.next()
-        pdb.set_trace()
+        # pdb.set_trace()
         
+        # datagen.fit(self.x_train)
+
+        while True:
+            gen_coarse = datagen.flow(X, y_coarse, seed=7, batch_size=batch_size)
+            gen_fine = datagen.flow(X, y_fine, seed= 7, batch_size=batch_size)
+
+            Y_coarse_sample = gen_coarse.next()
+            Y_fine_sample = gen_fine.next()
+            
+            # ipdb.set_trace()
+            yield Y_coarse_sample[0], [Y_fine_sample[1], Y_coarse_sample[1]]
+        
+
         # while True:
 
         #     pdb.set_trace()
@@ -398,17 +401,17 @@ class Trainer(object):
     #   'Denotes the number of batches per epoch'
     #   return int(np.floor(len(self.x_train.shape[0]) / self.batch_size))
    
-    def get_datagen(self):
+    # def get_datagen(self):
             
-            datagen = ImageDataGenerator(
-            featurewise_center=self.featurewise_center,
-            featurewise_std_normalization=self.featurewise_std_normalization,
-            rotation_range=self.rotation_range,
-            width_shift_range=self.width_shift_range,
-            height_shift_range=self.height_shift_range,
-            horizontal_flip=self.horizontal_flip
-            )
-            return datagen
+    #         datagen = ImageDataGenerator(
+    #         featurewise_center=self.featurewise_center,
+    #         featurewise_std_normalization=self.featurewise_std_normalization,
+    #         rotation_range=self.rotation_range,
+    #         width_shift_range=self.width_shift_range,
+    #         height_shift_range=self.height_shift_range,
+    #         horizontal_flip=self.horizontal_flip
+    #         )
+    #         return datagen
 
 
 
