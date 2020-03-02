@@ -37,7 +37,7 @@ set_random_seed(42)
 
 
 
-def load_model(data_shape, weights_path,model_type, label):
+def load_model(data_shape, weights_path, label):
     """
     Load and compile VGG model
     args: weights_path (str) trained weights file path
@@ -416,11 +416,11 @@ def get_deconvolution(activation_save_path,deconv_save_path, data, layer_list):
 #     #pdb.set_trace()
 
 
-def test_model(model):
+def test_model(model,label):
 
 
 
-    x_test, y_test = load_data('test')
+    x_test, y_test = load_data('test',label)
     results = model.evaluate(x_test, y_test)
     print(results)
 
@@ -593,30 +593,41 @@ if __name__ == '__main__':
     steps = 15
 
 
-    data, data_shape = load_data('act')
-    #data = data[:100]
-    #data_name = 'test_data'
 
     #Set different data_name for different models 
-    data_name = 'coarse_data'
-    model_type = 'code_BN_VGG'
-    label = 'coarse'
+    # data_name = 'coarse_data'
+    # model_type = 'code_BN_VGG'
+    # label = 'coarse'
+
+    #Set different data_name for different models 
 
     #Model with fine label
     #weights_path = 'ckpt/Model_with_Batch_Normalization/Model_with_Batch_Normalization_Max_epochs:_fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64_best_val_loss.h5'
     
     #Model with coarse label
-    weights_path = 'ckpt//Model_with_Batch_Normalization_coarse_label/Model_with_Batch_Normalization_coarse_label_Epochs:300_LR=1.e-4_coarse_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64_best_val_loss.h5'
+    # weights_path = 'ckpt//Model_with_Batch_Normalization_coarse_label/Model_with_Batch_Normalization_coarse_label_Epochs:300_LR=1.e-4_coarse_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64_best_val_loss.h5'
+    # data_name = 'coarse_data'
+    # model_type = 'code_BN_VGG'
+    # label = 'coarse'
+
+    #Model wit less Pooling
+    weights_path = 'ckpt/shallow_network_4/shallow_network_4_Andrew_Kruger_fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64_best_val_loss.h5'
+    data_name = 'kruger'
+    label = 'fine'
+
+
     weights_path = os.path.join(os.getcwd(),weights_path)
 
-
+    data, data_shape = load_data('act',label)
+    #data = data[:100]
+    #data_name = 'test_data'
 
     #./ckpt/VGG16_miss_max_augmented_fine_#1 run one MPL missing, DA  _fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64'
-    model = load_model(data_shape,weights_path, model_type,label)
+    model = load_model(data_shape,weights_path,label)
     pdb.set_trace()
 
     if model_test == True:
-        test_model(model)
+        test_model(model,label)
 
     layer_list = get_layer_list(model)
     layer_list = get_pool_conv_layer_list(layer_list)

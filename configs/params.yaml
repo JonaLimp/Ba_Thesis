@@ -1,2 +1,0 @@
-    BATCH_SIZE: [16,32]
-    INIT_LR: [1.e-1,1.e-2]

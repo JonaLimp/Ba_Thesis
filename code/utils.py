@@ -85,22 +85,44 @@ def one_hot_encoding(y_train, y_test, classes):
     return y_train, y_test
 
 
-def load_data(data_type):
-    classes = 20
-    (x_train, y_train), (x_test, y_test) = cifar100.load_data('coarse')
-    y_train, y_test = one_hot_encoding(y_train, y_test, classes)
+def load_data(data_type,label):
+    
+    if label == 'fine':
 
-    width, height, channels = x_train.shape[1], x_train.shape[2], x_train.shape[3]
-    x_train = x_train.reshape((x_train.shape[0], width, height, channels))
+        classes = 100
+        (x_train, y_train), (x_test, y_test) = cifar100.load_data('fine')
+        y_train, y_test = one_hot_encoding(y_train, y_test, classes)
 
-    width, height, channels = x_test.shape[1], x_test.shape[2], x_test.shape[3]
-    x_test = x_test.reshape((x_test.shape[0], width, height, channels))
+        width, height, channels = x_train.shape[1], x_train.shape[2], x_train.shape[3]
+        x_train = x_train.reshape((x_train.shape[0], width, height, channels))
 
-    x_train = x_train.astype("float32")
-    x_test = x_test.astype("float32")
+        width, height, channels = x_test.shape[1], x_test.shape[2], x_test.shape[3]
+        x_test = x_test.reshape((x_test.shape[0], width, height, channels))
 
-    x_train /= 255.0
-    x_test /= 255.0
+        x_train = x_train.astype("float32")
+        x_test = x_test.astype("float32")
+
+        x_train /= 255.0
+        x_test /= 255.0
+
+    else:
+
+        classes = 20
+        (x_train, y_train), (x_test, y_test) = cifar100.load_data('coarse')
+        y_train, y_test = one_hot_encoding(y_train, y_test, classes)
+
+        width, height, channels = x_train.shape[1], x_train.shape[2], x_train.shape[3]
+        x_train = x_train.reshape((x_train.shape[0], width, height, channels))
+
+        width, height, channels = x_test.shape[1], x_test.shape[2], x_test.shape[3]
+        x_test = x_test.reshape((x_test.shape[0], width, height, channels))
+
+        x_train = x_train.astype("float32")
+        x_test = x_test.astype("float32")
+
+        x_train /= 255.0
+        x_test /= 255.0
+
 
     if data_type == 'act':
 
