@@ -133,6 +133,7 @@ def get_top_k_activation(model, data, k):
                 lname = layer_outputs[l].name
                 lname, _, _, = lname.partition('/')
                 act_sum = all_activations[maxidx,l,f]
+
                 top5_activations[maxidx].append((maxidx,lname,f,act_sum))
 
 
@@ -187,7 +188,17 @@ def get_deconv_layer(layer_list):
     return deconv_layers
 
 def deconvolve_data(data, img_dict, layer_list):
-
+    """Summary
+    
+    Args:
+        data (TYPE): samples
+        img_dict (TYPE): list containing index of neurons that shows a high activations for coressponding sample
+        layer_list (TYPE): Description
+    
+    Returns:
+        TYPE: Description
+    """
+    pdb.set_trace()
     deconv_dict = {}
 
     deconv_layers = get_deconv_layer(layer_list)
@@ -282,14 +293,29 @@ def deconvolve_data(data, img_dict, layer_list):
             if isinstance(deconv_layers[layer_idx[elem[1]]][0].layer, layers.Conv2D):
 
                 if elem[1] in deconv_dict.keys():
-                        deconv_dict[elem[1]][elem[2]-1].append((elem,deconv))
+                        deconv_dict[elem[1]][elem[2]].append((elem,deconv))
 
                 else:
 
                     num_feature_maps = deconv_layers[layer_idx[elem[1]]][0].layer.get_weights()[0].shape[3]
                     deconv_dict.update({elem[1]: [ [] for x in range(num_feature_maps )]})
 
-                    deconv_dict[elem[1]][elem[2]-1].append((elem, deconv))
+                    deconv_dict[elem[1]][elem[2]].append((elem, deconv))
+
+
+
+
+
+                # if elem[1] in deconv_dict.keys():
+                #         deconv_dict[elem[1]][elem[2]-1].append((elem,deconv))
+
+                # else:
+
+                #     num_feature_maps = deconv_layers[layer_idx[elem[1]]][0].layer.get_weights()[0].shape[3]
+                #     deconv_dict.update({elem[1]: [ [] for x in range(num_feature_maps )]})
+
+                #     deconv_dict[elem[1]][elem[2]-1].append((elem, deconv))
+                #     pdb.set_trace()
 
 
 
@@ -482,9 +508,12 @@ def translate_representations(deconv_save_path,dir_path,data_name, layer_list, m
             else:   
                 rep = neuron[1] #at position 1 is the deconvolved representation
 
+
             act_array = shift_and_activate(rep,model,key,neuron_idx,steps)
+            print(not np.any(act_array))
             # new
             FWHM = getFWHM_GaussianFitScaledAmp(act_array)
+            # FWHM = get_linreg(act_array,steps)
             if not math.isnan(FWHM):
                 FWHM_list.append(FWHM)
             # FWHM_list.append(getFWHM_GaussianFitScaledAmp(act_array))
@@ -513,11 +542,12 @@ def shift_and_activate(rep,model,layer,neuron_idx,steps):
     for direction in directions:
         for step in range(steps):
             cord = np.array(direction)*step
-
             input_rep = shift(rep,cord,mode='nearest')
             out = activation_model.predict(input_rep[None,...])
             act_array[cord[0]+steps,cord[1]+steps] = out[...,neuron_idx].sum()
 
+    if not np.any(act_array):
+        pdb.set_trace()
     return act_array
 
 
@@ -583,14 +613,14 @@ if __name__ == '__main__':
     #load_deconv = False
     deconv_loop = False
     highest_act = False
-    model_test = True
+    model_test = False
 
     trans_rep = True
 
     # input for translation, either samples or deconvolved representations
     trans_input_type = 'representations'
     num_neurons = 60
-    steps = 15
+    steps = 3
 
 
 
@@ -624,7 +654,7 @@ if __name__ == '__main__':
 
     #./ckpt/VGG16_miss_max_augmented_fine_#1 run one MPL missing, DA  _fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64'
     model = load_model(data_shape,weights_path,label)
-    pdb.set_trace()
+
 
     if model_test == True:
         test_model(model,label)

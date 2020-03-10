@@ -1,0 +1,38 @@
+NAME: 'VGG16'
+NOTE: 'original architecture, three FC with DO,compare with augmented '
+
+
+RESUME: False
+
+PRE_PROCESSING:
+    LABEL: 'fine'
+    DATA_AUGMENTATION: False
+
+
+MODEL:
+    TYPE: 'VGG16'
+    PRETRAINED: False
+    HIDDEN: [4096,4096,1024]
+    DROPOUT_ARR: [1,1,0]
+    DROPOUT: 0.5
+    NEURON_ARR: [32,64,128,128]
+    VGG16_top: False
+
+
+TRAIN:
+    IS_TRAIN: True
+    EPOCHS: 50
+    BATCH_SIZE: 63
+    INIT_LR: 1.e-4
+    MOMENTUM: 0.9
+    TRAIN_PATIENCE: 50
+    OPTIM: 'adam'
+    WEIGHT_DECAY: 0.
+    NUM: 0
+    VALID: 0.1
+    VALID_FREQ: 1
+    LOSS: "categorical_crossentropy"
+
+TEST:
+    NUM: 100
+    LOAD_PATH: 'my_model'

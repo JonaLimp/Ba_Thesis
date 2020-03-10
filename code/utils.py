@@ -14,6 +14,27 @@ import copy
 from PIL import Image
 import pickle
 
+def get_linreg(img,steps):
+
+    center = steps
+
+
+    left = img[center,:center+1]
+    right = img[center,center:]
+    up = img[:center+1,center]
+    down = img[center:,center]
+    step_space = np.linspace(0,steps+1,steps+1)
+
+    directions =[left,up,down,right]
+
+    slopes = []
+    for direction in directions:
+        slope, _, _, _, _ = stats.linregress(step_space,direction)
+        slopes.append(abs(slope))
+
+    return np.mean(slopes)
+
+
 def twoD_GaussianScaledAmp(xy, xo, yo, sigma, amplitude, offset):
     """Function to fit, returns 2D gaussian function as 1D array"""
     x,y = xy
