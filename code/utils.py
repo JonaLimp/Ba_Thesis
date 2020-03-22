@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.optimize as opt
-import pdb
+import ipdb
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.datasets import cifar100
@@ -15,6 +15,13 @@ from PIL import Image
 import pickle
 
 def get_linreg(img,steps):
+    ipdb.set_trace()    
+    steps-=1
+    img = np.delete(img,img.shape[0]-1,0)
+    img = np.delete(img,img.shape[1]-1,1)
+    img = np.delete(img,0,0)
+    img = np.delete(img,0,1)
+
 
     center = steps
 
@@ -23,6 +30,10 @@ def get_linreg(img,steps):
     right = img[center,center:]
     up = img[:center+1,center]
     down = img[center:,center]
+
+    
+    ipdb.set_trace()
+
     step_space = np.linspace(0,steps+1,steps+1)
 
     directions =[left,up,down,right]
@@ -31,6 +42,7 @@ def get_linreg(img,steps):
     for direction in directions:
         slope, _, _, _, _ = stats.linregress(step_space,direction)
         slopes.append(abs(slope))
+
 
     return np.mean(slopes)
 

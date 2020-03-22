@@ -19,7 +19,7 @@ from utils import *
 import numpy as np
 from PIL import Image
 
-import pdb
+import ipdb
 import convnet
 import utils
 import time
@@ -28,7 +28,8 @@ import operator
 import copy
 import os
 import math
-
+from save_and_compress import *
+from plotting import plot_results
 
 from numpy.random import seed
 seed(42)
@@ -189,27 +190,27 @@ def get_deconv_layer(layer_list):
 
 def deconvolve_data(data, img_dict, layer_list):
     """Summary
-    
+
     Args:
         data (TYPE): samples
         img_dict (TYPE): list containing index of neurons that shows a high activations for coressponding sample
         layer_list (TYPE): Description
-    
+
     Returns:
         TYPE: Description
     """
-    pdb.set_trace()
+
     deconv_dict = {}
 
     deconv_layers = get_deconv_layer(layer_list)
     layer_idx = {}
-    
+
     #help params to find zero arrays
     index = 0
     zero_deconv = []
 
 
-    #get index 
+    #get index
     for layer in layer_list:
 
         if isinstance(layer[0], layers.Conv2D):
@@ -301,7 +302,7 @@ def deconvolve_data(data, img_dict, layer_list):
                     deconv_dict.update({elem[1]: [ [] for x in range(num_feature_maps )]})
 
                     deconv_dict[elem[1]][elem[2]].append((elem, deconv))
-
+                test(deconv, elem)
 
 
 
@@ -320,12 +321,20 @@ def deconvolve_data(data, img_dict, layer_list):
 
 
 
-    pdb.set_trace()
+
 
 
     return deconv_dict
 
 
+
+def test(arr, elem):
+    import matplotlib.pyplot as plt
+    plt.title(str(elem))
+    plt.imshow(deprocess_image(arr))
+    save_path = os.path.join(os.getcwd(),'convnet/bildaz')
+    plt.savefig(os.path.join(save_path,'{}.png'.format(elem)))
+    ipdb.set_trace()
 
 
 
@@ -483,72 +492,155 @@ def test_model(model,label):
 
 
 
-def translate_representations(deconv_save_path,dir_path,data_name, layer_list, model, data, num_neurons,steps,_trans_input_type):
+def translate_representations(deconv_save_path, layer_list, model, num_neurons,steps,label):
 
-    trans_rep_save_path = os.path.join(dir_path,'trans_rep_dict_{}_num_neurons:{}_steps:{}_trans_input_type:{}.pickle'.format(data_name,num_neurons,steps,trans_input_type))
+    # trans_rep_save_path = os.path.join(dir_path,'trans_rep_dict_{}_num_neurons:{}_steps:{}_trans_input_type:{}.pickle'.format(data_name,num_neurons,steps,trans_input_type))
     deconv = pickle.load(open(deconv_save_path,'rb'))
-    layer_FWHM_dict = {}
 
+
+    layer_FWHM_dict = {}
+    layer_linreg_dict = {}
+    neuron_characteristics_dict = {}
 
     # n_list contains feature_maps
     for key, n_list in deconv.items():
+
+        #list to save the parameter of the different statistical methods
         FWHM_list = []
-        
-        rand_neurons = np.random.choice(len(n_list), num_neurons, replace=False) # 
+        linreg_list = []
+
+        #list to save the values seperateed for every neuron
+        neuron_characteristics_list = []
+
+
+        #pick n randomly chosen neurons
+        rand_neurons = np.random.choice(len(n_list), num_neurons, replace=False)
+        #save all other neurons in seperated list
+        other_neurons = [x for x in range(len(n_list)) if x not in rand_neurons]
+
+
 
         for neuron_idx in rand_neurons:
 
             neuron = n_list[neuron_idx][0]
-            print(neuron[0])
             if not neuron[0][3]: #if activation is zero skip that neuron
-                neuron = n_list[neuron_idx+1][0]
-            
-            if trans_input_type == 'samples':
-                rep = data[neuron[0][0]] #at tuple position zero is image index
-            else:   
-                rep = neuron[1] #at position 1 is the deconvolved representation
+                # neuron = n_list[neuron_idx+1][0]
+                continue
+            #sample, layer, fm, activation
+            neuron_characteristics = neuron[0]
+            print(neuron[0])
+
+            # if trans_input_type == 'samples':
+            # rep = data[neuron[0][0]] #at tuple position zero is image index
+            # else:
+            rep = neuron[1] #at position 1 is the deconvolved representation
 
 
             act_array = shift_and_activate(rep,model,key,neuron_idx,steps)
-            print(not np.any(act_array))
-            # new
-            FWHM = getFWHM_GaussianFitScaledAmp(act_array)
-            # FWHM = get_linreg(act_array,steps)
-            if not math.isnan(FWHM):
-                FWHM_list.append(FWHM)
-            # FWHM_list.append(getFWHM_GaussianFitScaledAmp(act_array))
 
-            print(np.mean(FWHM_list))
+            if not np.any(act_array):
+                act_array, other_neurons, neuron_characteristics = shift_non_zeros(n_list, model, key, steps, other_neurons)
+            if not np.any(act_array):
+                ipdb.set_trace()
+
+
+            #FWHM of Guassian
+            #slope of regreseeion
+            FWHM_all_units = []
+            linreg_all_units = []
+
+            for elem in act_array:
+                FWHM_all_units.append(getFWHM_GaussianFitScaledAmp(elem))
+                linreg_all_units.append(get_linreg(elem,steps))
+            FWHM = np.nanmean(FWHM_all_units)
+            linreg = np.nanmean(linreg_all_units)
+            linreg_list.append(linreg)
+            FWHM_list.append(FWHM)
+
+            # FWHM_list.append(getFWHM_GaussianFitScaledAmp(act_array))
+            res_and_index = [neuron_characteristics,linreg,FWHM,act_array]
+            neuron_characteristics_list.append(res_and_index)
+
+            print('FWHM of representation: {} and actual mean: {}'.format(FWHM, np.mean(FWHM_list)))
+            print('Slope of representation: {} and actual mean: {}'.format(linreg, np.mean(linreg_list)))
+
+
+        layer_linreg_dict.update({key: np.nanmean(linreg_list)})
         layer_FWHM_dict.update({key: np.nanmean(FWHM_list)})
+        neuron_characteristics_dict.update({key: neuron_characteristics_list})
+
         print('layer {} translated with {} randomly chosen neurons and {} steps.'.format(key,num_neurons,steps))
 
-    pickle.dump(layer_FWHM_dict, open(trans_rep_save_path, 'wb'))
+    res = [layer_FWHM_dict,layer_linreg_dict,neuron_characteristics_dict]
+
+    trans_rep_save_path = os.path.join(dir_path,'trans_rep_all_steps_{}.pickle'.format(label))
+    pickle.dump(res, open(trans_rep_save_path, 'wb'))
     print('translated images are dumped')
-
-    pdb.set_trace()
-    return layer_FWHM_dict
-
+    return res
 
 
 def shift_and_activate(rep,model,layer,neuron_idx,steps):
 
 
     activation_model = Model(inputs=model.input, outputs=model.get_layer(layer).output)
-    act_array = np.zeros((2*steps+1,2*steps+1))
+
+
+    heights, widths = model.get_layer(layer).output.shape[1],model.get_layer(layer).output.shape[2]
+
+    act_array = np.zeros((heights*widths,2*steps+1,2*steps+1))
 
     #rep[0][3] is the activation of the representation
     # act_array[steps,steps]= activation_model.predict()
+
     directions = ((0,1,0),(0,-1,0),(1,0,0),(-1,0,0),(-1,1,0),(1,-1,0),(-1,-1,0),(1,1,0))
     for direction in directions:
-        for step in range(steps):
+        for step in range(steps+1):
             cord = np.array(direction)*step
-            input_rep = shift(rep,cord,mode='nearest')
-            out = activation_model.predict(input_rep[None,...])
-            act_array[cord[0]+steps,cord[1]+steps] = out[...,neuron_idx].sum()
 
-    if not np.any(act_array):
-        pdb.set_trace()
+            input_rep = shift(rep,cord,mode='constant')
+            out = activation_model.predict(input_rep[None,...])
+            act_array[:,cord[0]+steps,cord[1]+steps] = out[...,neuron_idx].flatten()
+    ipdb.set_trace()
+    act_array = act_array[~np.all(act_array<0.1,axis=(1,2))]
+
     return act_array
+
+# def shift_and_activate_lin(rep,model,neuron_idx,steps):
+
+#     activation_model = Model(inputs=model.input, outputs=model.get_layer(layer).output)
+#     left = np.zeros(steps+1)
+#     right = np.zeros(steps+1)
+#     up = np.zeros(steps+1)
+#     down = np.zeros(steps+1)
+
+#     directions = [left, right, up, down]
+
+#     for direction in directions:
+#         for step in steps:
+
+def shift_non_zeros(n_list,model,key,steps, other_neurons):
+
+    neuron_idx = np.random.choice(other_neurons)
+    other_neurons.remove(neuron_idx)
+    neuron = n_list[neuron_idx][0]
+
+
+    if not neuron[0][3]: #if activation is zero skip that neuron
+        neuron_idx = np.random.choice(other_neurons)
+        other_neurons.remove(neuron_idx)
+        neuron = n_list[neuron_idx][0]
+
+    neuron_characteristics = neuron[0]
+    print(neuron_characteristics)
+    rep = neuron[1]
+
+    act_array = shift_and_activate(rep,model,key,neuron_idx,steps)
+    if not np.any(act_array):
+        act_array, other_neurons, neuron_characteristics= shift_non_zeros(n_list,model,key,steps,other_neurons)
+
+
+
+    return act_array, other_neurons, neuron_characteristics
 
 
 # def VGG16_representation():
@@ -602,54 +694,93 @@ def shift_and_activate(rep,model,layer,neuron_idx,steps):
 
     # print('deconvolved images and csv are dumped')
 
+def translate_diff_steps_size(deconv_save_path,dir_path,layer_list, model,num_neurons,steps,label):
 
+    steps += 1
+
+    trans_rep_save_path = os.path.join(dir_path,'trans_rep_all_steps_{}.pickle'.format(label))
+    res_list = []
+    for step in range(2,steps+1):
+        res = translate_representations(deconv_save_path,layer_list, model,num_neurons,step)
+        # FWHM_list = [item for item in layer_FWHM_dict.items()]
+        # FWHM_list.sort(key=lambda x:x[0])
+        res_list.append(res)
+
+    ipdb.set_trace()
+    pickle.dump(res_list, open(trans_rep_save_path, 'wb'))
+    print('translated images are dumped')
+    # for idx, elem in enumerate(FWHM_steps_list):
+    #     print('stepsize: {} \n'.format(idx+1))
+    #     for e in elem:
+    #         print (e)
+
+    #     print('\n')
+
+
+
+
+def calculate_kolmogrov(dir_path, deconv_save_path,label):
+
+    kolmogrov_save_path = os.path.join(dir_path,'kolmogrov_mean_{}.pickle'.format(label))
+    kolmogrov_mean_dict = save_and_compress_images(dir_path,deconv_save_path)
+    pickle.dump(kolmogrov_mean_dict, open(kolmogrov_save_path, 'wb'))
+    print('kolmogrov complexty dictionary dumped')
 
 
 if __name__ == '__main__':
 
-    #model_load = False
+    model_test = False
     get_act = False
     get_deconv = False
     #load_deconv = False
-    deconv_loop = False
-    highest_act = False
-    model_test = False
+    # deconv_loop = False
+    # highest_act = False
+
 
     trans_rep = True
+    kolmogrov_complex = False
+    create_individual_plots = False
+    create_combined_plots = False
 
     # input for translation, either samples or deconvolved representations
-    trans_input_type = 'representations'
-    num_neurons = 60
-    steps = 3
+    label = 'coarse'
+    num_neurons = 5
+    steps = 5
 
 
 
-    #Set different data_name for different models 
+
+
+    #Set different data_name for different models
     # data_name = 'coarse_data'
     # model_type = 'code_BN_VGG'
     # label = 'coarse'
 
-    #Set different data_name for different models 
+    #Set different data_name for different models
 
     #Model with fine label
     #weights_path = 'ckpt/Model_with_Batch_Normalization/Model_with_Batch_Normalization_Max_epochs:_fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64_best_val_loss.h5'
-    
+
     #Model with coarse label
     # weights_path = 'ckpt//Model_with_Batch_Normalization_coarse_label/Model_with_Batch_Normalization_coarse_label_Epochs:300_LR=1.e-4_coarse_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64_best_val_loss.h5'
     # data_name = 'coarse_data'
     # model_type = 'code_BN_VGG'
     # label = 'coarse'
 
-    #Model wit less Pooling
-    weights_path = 'ckpt/shallow_network_4/shallow_network_4_Andrew_Kruger_fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64_best_val_loss.h5'
-    data_name = 'kruger'
-    label = 'fine'
+    #Model with fine labelling
+    # weights_path = 'ckpt/shallow_network_4/shallow_network_4_Andrew_Kruger_fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64_best_val_loss.h5'
+    # label = 'fine'
 
+    #shallow_less_dense
+    if label == 'fine':
+        weights_path = 'ckpt/shallow_less_dense/shallow_less_dense_#3_fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64_best_val_loss.h5'
+    else:
+        weights_path ='ckpt/shallow_less_dense_coarse/shallow_less_dense_coarse_#3_coarse_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64_best_val_loss.h5'
 
     weights_path = os.path.join(os.getcwd(),weights_path)
 
     data, data_shape = load_data('act',label)
-    #data = data[:100]
+    # data = data[:6]
     #data_name = 'test_data'
 
     #./ckpt/VGG16_miss_max_augmented_fine_#1 run one MPL missing, DA  _fine_LR=0.0001_HIDDEN_[4096, 4096, 1024]_BS=64'
@@ -664,14 +795,14 @@ if __name__ == '__main__':
     #layer_list.pop(0)
     #layer_list =layer_list[:-10]
     #pdb.set_trace()
-    dir_path = './convnet/Data/{}/'.format(data_name)
+    dir_path = './results/{}/'.format(label)
     # dir_path = './convnet/Data/'
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
 
-    activation_save_path = os.path.join(dir_path, 'activation_dict_{}.pickle'.format(data_name,data_name))
-    deconv_save_path = os.path.join(dir_path, 'deconv_dict_{}.pickle'.format(data_name,data_name))
-
+    activation_save_path = os.path.join(dir_path, 'activation_dict_{}.pickle'.format(label))
+    deconv_save_path = os.path.join(dir_path, 'deconv_dict_{}.pickle'.format(label))
+    # kolmogrov_save_path =os.path.join(dir_path, 'kol_mean_{}.pickle'.format(label))
 
 
     # get activations for each neuron in each layer for given dataset
@@ -684,18 +815,29 @@ if __name__ == '__main__':
     if get_deconv == True:
         get_deconvolution(activation_save_path, deconv_save_path, data, layer_list)
 
-    if highest_act == True:
-        get_highest_act(activation_save_path)
+    # if highest_act == True:
+    #     get_highest_act(activation_save_path)
 
-    #visualize specific neurons
-    if deconv_loop == True:
-        deconvolution_loop(deconv_save_path,data)
+    # #visualize specific neurons
+    # if deconv_loop == True:
+    #     deconvolution_loop(deconv_save_path,data)
 
     if trans_rep == True:
-        translate_representations(deconv_save_path,dir_path, data_name,layer_list, model, data, num_neurons,steps,trans_input_type)
+        # translate_diff_steps_size(deconv_save_path,dir_path,layer_list, model,num_neurons,steps,label)
+        res = translate_representations(deconv_save_path, layer_list, model, num_neurons,steps, label)
+
+    if kolmogrov_complex == True:
+        calculate_kolmogrov(dir_path,deconv_save_path,label)
+
+    if create_individual_plots == True:
+        plot_results(label,model, dir_path,data, deconv_save_path)
+
+    if create_combined_plots == True:
+        combined_plots(model)
 
 
 
+    # translate_diff_steps_size(deconv_save_path,dir_path, data_name,layer_list, model, data, num_neurons,steps,trans_input_type)
 
 
 

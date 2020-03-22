@@ -247,7 +247,7 @@ class Trainer(object):
                         shuffle=True,
                         initial_epoch=epoch)
                     print('use data_aug')
-                    pdb.set_trace()
+
 
             # print(history.history.keys())
             
@@ -382,8 +382,8 @@ class Trainer(object):
         # datagen.fit(self.x_train)
 
         while True:
-            gen_coarse = datagen.flow(X, y_coarse, seed=7, batch_size=batch_size)
-            gen_fine = datagen.flow(X, y_fine, seed= 7, batch_size=batch_size)
+            gen_coarse = datagen.flow(X, y_coarse, batch_size=batch_size)
+            gen_fine = datagen.flow(X, y_fine, batch_size=batch_size)
 
             Y_coarse_sample = gen_coarse.next()
             Y_fine_sample = gen_fine.next()

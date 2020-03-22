@@ -355,6 +355,34 @@ def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_chan
             network = layers.Dense(n_hidden[i], activation="relu")(network)
             if dropout_arr[i]:
                 network = layers.Dropout(dropout)(network)
+
+    elif type == 'shallow_net_less_dense':
+
+        visible = layers.Input(shape=(img_shape[1], img_shape[2], img_shape[3]))
+        # Block 1
+        x = layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='block1_conv1',kernel_regularizer=regularizers.l2(weight_decay))(visible)
+        x = layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='block1_conv2',kernel_regularizer=regularizers.l2(weight_decay))(x)
+        x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block1_pool')(x)
+        x = layers.Dropout(0.25)(x) 
+
+        x = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block2_conv1', kernel_regularizer=regularizers.l2(weight_decay))(x)
+        x = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block2_conv2', kernel_regularizer=regularizers.l2(weight_decay))(x)
+        x = layers.MaxPooling2D((2,2), strides= (2,2), name ='block2_pool')(x)
+        x = layers.Dropout(0.25)(x)
+
+        x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block3_conv1', kernel_regularizer=regularizers.l2(weight_decay))(x)
+        x = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block3_conv2', kernel_regularizer=regularizers.l2(weight_decay))(x)
+    
+        x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool')(x)
+        x = layers.Dropout(0.25)(x)
+
+        network = layers.Flatten()(x)
+
+        network = layers.Dense(1024, activation="relu")(network)
+        network = layers.Dropout(0.5)(network)
+
+
+
     # use from scratch model
     # uses a model generator to create layerstacks consisting of
     # conV-, MaxPooling-, and Dropout layer
