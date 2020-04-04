@@ -18,7 +18,7 @@ DATA_AUGMENTATION:
 
 
 MODEL:
-    TYPE: 'kruger_net'
+    TYPE: 'shallow_net_less_dense'
     PRETRAINED: False
     HIDDEN: [4096,4096,1024]
     DROPOUT_ARR: [1,1,0]
@@ -31,7 +31,7 @@ TRAIN:
     IS_TRAIN: True
     EPOCHS: 300
     BATCH_SIZE: 64
-    INIT_LR: 1.e-4
+    INIT_LR: 1.e-3
     MOMENTUM: 0.9
     TRAIN_PATIENCE: 50
     OPTIM: 'adam'

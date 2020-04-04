@@ -29,7 +29,7 @@ import copy
 import os
 import math
 from save_and_compress import *
-from plotting import plot_results
+from plotting import *
 
 from numpy.random import seed
 seed(42)
@@ -302,7 +302,7 @@ def deconvolve_data(data, img_dict, layer_list):
                     deconv_dict.update({elem[1]: [ [] for x in range(num_feature_maps )]})
 
                     deconv_dict[elem[1]][elem[2]].append((elem, deconv))
-                test(deconv, elem)
+
 
 
 
@@ -328,13 +328,6 @@ def deconvolve_data(data, img_dict, layer_list):
 
 
 
-def test(arr, elem):
-    import matplotlib.pyplot as plt
-    plt.title(str(elem))
-    plt.imshow(deprocess_image(arr))
-    save_path = os.path.join(os.getcwd(),'convnet/bildaz')
-    plt.savefig(os.path.join(save_path,'{}.png'.format(elem)))
-    ipdb.set_trace()
 
 
 
@@ -458,6 +451,7 @@ def test_model(model,label):
     x_test, y_test = load_data('test',label)
     results = model.evaluate(x_test, y_test)
     print(results)
+    ipdb.set_trace()
 
 
 
@@ -492,7 +486,7 @@ def test_model(model,label):
 
 
 
-def translate_representations(deconv_save_path, layer_list, model, num_neurons,steps,label):
+def translate_representations(deconv_save_path, layer_list, model, num_neurons,steps,label,data):
 
     # trans_rep_save_path = os.path.join(dir_path,'trans_rep_dict_{}_num_neurons:{}_steps:{}_trans_input_type:{}.pickle'.format(data_name,num_neurons,steps,trans_input_type))
     deconv = pickle.load(open(deconv_save_path,'rb'))
@@ -533,9 +527,9 @@ def translate_representations(deconv_save_path, layer_list, model, num_neurons,s
             # if trans_input_type == 'samples':
             # rep = data[neuron[0][0]] #at tuple position zero is image index
             # else:
-            rep = neuron[1] #at position 1 is the deconvolved representation
-
-
+            # rep = deprocess_image(neuron[1])#at position 1 is the deconvolved representation / adjust size
+            rep = neuron[1]*255
+            #ipdb.set_trace()
             act_array = shift_and_activate(rep,model,key,neuron_idx,steps)
 
             if not np.any(act_array):
@@ -549,11 +543,13 @@ def translate_representations(deconv_save_path, layer_list, model, num_neurons,s
             FWHM_all_units = []
             linreg_all_units = []
 
-            for elem in act_array:
-                FWHM_all_units.append(getFWHM_GaussianFitScaledAmp(elem))
-                linreg_all_units.append(get_linreg(elem,steps))
-            FWHM = np.nanmean(FWHM_all_units)
-            linreg = np.nanmean(linreg_all_units)
+            #for elem in act_array:
+            #    FWHM_all_units.append(getFWHM_GaussianFitScaledAmp(elem))
+            #    linreg_all_units.append(get_linreg(elem,steps))
+            FWHM = getFWHM_GaussianFitScaledAmp(act_array) #np.nanmean(FWHM_all_units)
+            linreg = get_linreg_dir(act_array,steps)
+ 
+            #np.nanmean(linreg_all_units)
             linreg_list.append(linreg)
             FWHM_list.append(FWHM)
 
@@ -574,6 +570,7 @@ def translate_representations(deconv_save_path, layer_list, model, num_neurons,s
     res = [layer_FWHM_dict,layer_linreg_dict,neuron_characteristics_dict]
 
     trans_rep_save_path = os.path.join(dir_path,'trans_rep_all_steps_{}.pickle'.format(label))
+    ipdb.set_trace()
     pickle.dump(res, open(trans_rep_save_path, 'wb'))
     print('translated images are dumped')
     return res
@@ -587,36 +584,26 @@ def shift_and_activate(rep,model,layer,neuron_idx,steps):
 
     heights, widths = model.get_layer(layer).output.shape[1],model.get_layer(layer).output.shape[2]
 
-    act_array = np.zeros((heights*widths,2*steps+1,2*steps+1))
+    act_array = np.zeros((2*steps+1,2*steps+1))
 
     #rep[0][3] is the activation of the representation
-    # act_array[steps,steps]= activation_model.predict()
+    center = activation_model.predict(rep[None,...])[...,neuron_idx].flatten()
+    max_idx = np.argmax(center,0)
+    act_array[steps,steps] = center[max_idx]
 
     directions = ((0,1,0),(0,-1,0),(1,0,0),(-1,0,0),(-1,1,0),(1,-1,0),(-1,-1,0),(1,1,0))
     for direction in directions:
-        for step in range(steps+1):
+        for step in range(1,steps+1):
             cord = np.array(direction)*step
 
             input_rep = shift(rep,cord,mode='constant')
             out = activation_model.predict(input_rep[None,...])
-            act_array[:,cord[0]+steps,cord[1]+steps] = out[...,neuron_idx].flatten()
-    ipdb.set_trace()
-    act_array = act_array[~np.all(act_array<0.1,axis=(1,2))]
-
+            act_array[cord[0]+steps,cord[1]+steps] = out[...,neuron_idx].flatten()[max_idx]
+    #if layer == 'block1_conv1':
+    #    ipdb.set_trace()
     return act_array
 
-# def shift_and_activate_lin(rep,model,neuron_idx,steps):
 
-#     activation_model = Model(inputs=model.input, outputs=model.get_layer(layer).output)
-#     left = np.zeros(steps+1)
-#     right = np.zeros(steps+1)
-#     up = np.zeros(steps+1)
-#     down = np.zeros(steps+1)
-
-#     directions = [left, right, up, down]
-
-#     for direction in directions:
-#         for step in steps:
 
 def shift_non_zeros(n_list,model,key,steps, other_neurons):
 
@@ -643,56 +630,6 @@ def shift_non_zeros(n_list,model,key,steps, other_neurons):
     return act_array, other_neurons, neuron_characteristics
 
 
-# def VGG16_representation():
-
-#     dir_path = './convnet/Data/VGG16/'
-
-#     activation_save_path = os.path.join(dir_path, 'activation_dict_VGG.pickle')
-#     deconv_save_path = os.path.join(dir_path, 'deconv_dict_VGG.pickle')
-#     trans_rep_save_path = os.path.join(dir_path,'trans_rep_dict_VGG.pickle')
-#     csv_save_path = os.path.join(dir_path, 'csv_VGG.pickle')
-#     model = VGG16(weights='imagenet', include_top=True)
-#     layer_list = get_pool_conv_layer_list(get_layer_list(model))
-#     pdb.set_trace()
-#     if not os.path.exists(dir_path):
-#         os.makedirs(dir_path)
-
-#     img_path = os.path.join(os.getcwd(), 'convnet/cat.jpg')
-#     img = image.load_img(img_path, target_size=(224, 224))
-#     x = image.img_to_array(img)
-#     x = np.expand_dims(x, axis=0)
-#     x = preprocess_input(x)
-
-#     VGG_dict = get_top_k_activation(model, x, 1)
-
-#     max_elem = None
-#     max_value = 0.0
-
-
-#     df_VGG = pd.DataFrame(VGG_dict[0], columns=['img','layer','neuron','activation'])
-#     VGG_csv = df_VGG.to_csv()
-
-#     for idx,elem in enumerate(VGG_dict[0]):
-#         elem = list(elem)
-#         string = elem[1]
-#         elem[1] = string[:-2]
-#         VGG_dict[0][idx] = tuple(elem)
-
-
-
-    # VGG_deconv = deconvolve_data(x, VGG_dict, layer_list)
-
-#/pickle.dump(deconv, open(deconv_save_path, 'wb'))
-
-    # pickle.dump(VGG_dict, open(activation_save_path, 'wb'))
-    # pickle.dump(VGG_deconv, open(deconv_save_path, 'wb'))
-    # pickle.dump(VGG_csv, open(csv_save_path, 'wb'))
-
-    # trans_rep = translate_representations(deconv_save_path, trans_rep_save_path, layer_list, model, 50, 5)
-
-
-
-    # print('deconvolved images and csv are dumped')
 
 def translate_diff_steps_size(deconv_save_path,dir_path,layer_list, model,num_neurons,steps,label):
 
@@ -728,24 +665,21 @@ def calculate_kolmogrov(dir_path, deconv_save_path,label):
 
 
 if __name__ == '__main__':
-
+    np.random.seed(42)
     model_test = False
     get_act = False
     get_deconv = False
-    #load_deconv = False
-    # deconv_loop = False
-    # highest_act = False
 
 
     trans_rep = True
     kolmogrov_complex = False
-    create_individual_plots = False
-    create_combined_plots = False
+    create_individual_plots = True
+    create_combined_plots = True
 
     # input for translation, either samples or deconvolved representations
     label = 'coarse'
-    num_neurons = 5
-    steps = 5
+    num_neurons = 128
+    steps = 10
 
 
 
@@ -792,9 +726,7 @@ if __name__ == '__main__':
 
     layer_list = get_layer_list(model)
     layer_list = get_pool_conv_layer_list(layer_list)
-    #layer_list.pop(0)
-    #layer_list =layer_list[:-10]
-    #pdb.set_trace()
+
     dir_path = './results/{}/'.format(label)
     # dir_path = './convnet/Data/'
     if not os.path.exists(dir_path):
@@ -824,7 +756,7 @@ if __name__ == '__main__':
 
     if trans_rep == True:
         # translate_diff_steps_size(deconv_save_path,dir_path,layer_list, model,num_neurons,steps,label)
-        res = translate_representations(deconv_save_path, layer_list, model, num_neurons,steps, label)
+        res = translate_representations(deconv_save_path, layer_list, model, num_neurons,steps, label,data)
 
     if kolmogrov_complex == True:
         calculate_kolmogrov(dir_path,deconv_save_path,label)
@@ -833,7 +765,7 @@ if __name__ == '__main__':
         plot_results(label,model, dir_path,data, deconv_save_path)
 
     if create_combined_plots == True:
-        combined_plots(model)
+        combined_plots()
 
 
 

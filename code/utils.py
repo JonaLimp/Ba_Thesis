@@ -15,12 +15,12 @@ from PIL import Image
 import pickle
 
 def get_linreg(img,steps):
-    ipdb.set_trace()    
-    steps-=1
-    img = np.delete(img,img.shape[0]-1,0)
-    img = np.delete(img,img.shape[1]-1,1)
-    img = np.delete(img,0,0)
-    img = np.delete(img,0,1)
+    # ipdb.set_trace()    
+    # steps-=1
+    # img = np.delete(img,img.shape[0]-1,0)
+    # img = np.delete(img,img.shape[1]-1,1)
+    # img = np.delete(img,0,0)
+    # img = np.delete(img,0,1)
 
 
     center = steps
@@ -32,9 +32,10 @@ def get_linreg(img,steps):
     down = img[center:,center]
 
     
-    ipdb.set_trace()
+    # ipdb.set_trace()
 
-    step_space = np.linspace(0,steps+1,steps+1)
+    #step_space = np.linspace(0,steps+1,steps+1)
+    step_space = np.arange(steps+1)
 
     directions =[left,up,down,right]
 
@@ -46,7 +47,25 @@ def get_linreg(img,steps):
 
     return np.mean(slopes)
 
+def get_linreg_dir(img,steps):
+    directions = ((0,1,0),(0,-1,0),(1,0,0),(-1,0,0),(-1,1,0),(1,-1,0),(-1,-1,0),(1,1,0))
 
+    slopes = []
+    step_space = np.arange(steps+1)
+
+    for direction in directions:
+        dir_values = []
+        for ste in range(0,steps+1):
+            cord = np.array(direction)*ste
+  
+            dir_values.append(img[cord[0]+steps,cord[1]+steps])
+        slope, _, _, _, _ = stats.linregress(step_space,dir_values)
+
+        slopes.append(slope)
+        # print('dir',dir_values)
+
+    return np.mean(slopes)
+          
 def twoD_GaussianScaledAmp(xy, xo, yo, sigma, amplitude, offset):
     """Function to fit, returns 2D gaussian function as 1D array"""
     x,y = xy

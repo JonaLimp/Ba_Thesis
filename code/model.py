@@ -10,6 +10,8 @@ from tensorflow.keras.applications.vgg16 import VGG16
 from tensorflow.keras.models import Model
 from tensorflow.keras import regularizers
 import logging
+from tensorflow.keras.utils import plot_model
+import os
 
 
 def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_channels, VGG16_top, use_gen, dropout_arr, weight_decay):
@@ -478,24 +480,9 @@ def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_chan
     if type == "VGG16":
         model = Model(inputs=vgg16.input, outputs=out)
 
-    elif type == "VGG16_miss_Max":
-        model = Model(inputs=visible, outputs=out)
-
-    elif type == 'VGG16_BN':
-        model = Model(inputs=visible, outputs=out)
-    
-    elif type == 'less_pooling':
-        model = Model(inputs=visible, outputs=out)
-
-    elif type == "from_scratch":
-        model = Model(inputs=visible, outputs=out)
-
-    elif type == "VGG16_with_DO":
-        model = Model(inputs=visible, outputs=out)
-
     else:
         model = Model(inputs=visible, outputs=out)
     
     logger.info(model.summary())
-
+    plot_model(model, to_file=os.path.join(os.getcwd(),'model_{}_plot.png'.format("combined")), show_shapes=True, show_layer_names=True)
     return model
