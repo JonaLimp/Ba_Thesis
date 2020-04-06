@@ -44,15 +44,6 @@ def load_model(data_shape, weights_path, label):
     args: weights_path (str) trained weights file path
     returns model (Keras model)
     """
-    # # either VGG16(), VGG16_keras or BN_VGG
-    # if model_type == 'VGG_16':
-    #     model = VGG_16_keras(weights_path,data_shape)
-
-    # if model_type == 'BN_VGG':
-    #     model = BN_VGG(weights_path,data_shape)
-    # if model_type == 'code_BN_VGG':
-    #     model = create_model(type='VGG16_BN',pretrained = False, img_shape = data_shape, n_hidden = [4096,4096,1024], dropout = 0.5,
-    #      label = label, arr_channels = [], VGG16_top = False, use_gen = False, dropout_arr = [1,1,0], weight_decay = 0.0005)
 
 
     print("Loading weights...")
@@ -75,7 +66,14 @@ def get_layer_list(model):
 
     #TODO check for valid layers
 def get_pool_conv_layer_list(layer_list):
-
+    """returns a list containing all pooling and all conv layers
+    
+    Args:
+        layer_list (TYPE): list of all layers of network
+    
+    Returns:
+        TYPE: list of all pooling and all conv layers
+    """
     conv_pool_layer_list = []
 
     for layer in layer_list:
@@ -93,12 +91,22 @@ def get_pool_conv_layer_list(layer_list):
     return conv_pool_layer_list
 
 def get_top_k_activation(model, data, k):
+    """finds the top k samles that activates a feature map the most 
+    
+    Args:
+        model (model): model
+        data (array): validation set
+        k (int): 
+    
+    Returns:
+        TYPE: dict containing top k samples for each fm in each layer
+        value elements is dict are tuple containing four elements
+            1) sample numeber
+            2) Layer number
+            3) fm number
+            4) activation score
+    """
 
-    #TODO improve performance by using activation model
-    #save all activations in an arrya of shape
-    #dim #1 samples
-    #dim #2 layer
-    #dim #3 units
 
     layer_outputs = [layer.output for layer in model.layers[1:] if isinstance(layer, layers.Conv2D)]
 
@@ -113,7 +121,7 @@ def get_top_k_activation(model, data, k):
     elapsed = time.clock()
     elapsed = elapsed - start
 
-
+    # predict activation for all feature maps in all layers for all samples
     all_activations = np.zeros((len(data),len(layer_outputs),int(layer_outputs[-1].shape[-1])))
     for idx ,sample in enumerate(data):
         activations = activation_model.predict(sample)
@@ -145,27 +153,42 @@ def get_top_k_activation(model, data, k):
 
     return top5_activations
 
-def get_img_dict(activation_dict):
+# def get_img_dict(activation_dict):
+#     """Summary
+    
+#     Args:
+#         activation_dict (TYPE): Description
+    
+#     Returns:
+#         TYPE: Description
+#     """
+#     img_dict = {}
 
-    img_dict = {}
+#     for layer in activation_dict.keys():
+#         for neuron in activation_dict[layer]:
+#             for tupl in activation_dict[layer][neuron]:
 
-    for layer in activation_dict.keys():
-        for neuron in activation_dict[layer]:
-            for tupl in activation_dict[layer][neuron]:
+#                 act_tuple = (tupl[0], layer, neuron, tupl[1])
+#                 if tupl[0] in img_dict.keys():
+#                     img_dict[tupl[0]].append(act_tuple)
+#                 else:
+#                     img_dict.update({tupl[0]: [act_tuple] })
 
-                act_tuple = (tupl[0], layer, neuron, tupl[1])
-                if tupl[0] in img_dict.keys():
-                    img_dict[tupl[0]].append(act_tuple)
-                else:
-                    img_dict.update({tupl[0]: [act_tuple] })
-
-            activation_dict[layer][neuron].sort(key=operator.itemgetter(1))
+#             activation_dict[layer][neuron].sort(key=operator.itemgetter(1))
 
 
-    return img_dict
+#     return img_dict
 
 def get_deconv_layer(layer_list):
-
+    """creates a deconv layer_list containg the input,unpooling 
+    and trans_conv_layer 
+    
+    Args:
+        layer_list (list): layer_list containing all layers of Convnet
+    
+    Returns:
+        TYPE: list containg all layer of DeconvNet
+    """
     counter = 0
     deconv_layers = []
     for layer in layer_list:
@@ -189,12 +212,13 @@ def get_deconv_layer(layer_list):
     return deconv_layers
 
 def deconvolve_data(data, img_dict, layer_list):
-    """Summary
+    """ construct the reconstruction for all top-k samples of the max neuron
+    of each feature map in each layer 
 
     Args:
-        data (TYPE): samples
-        img_dict (TYPE): list containing index of neurons that shows a high activations for coressponding sample
-        layer_list (TYPE): Description
+        data (array): contains samples of validation set
+        img_dict (dict): dict containing index of neurons that shows a high activations for coressponding sample
+        layer_list (TYPE): list contaiong all layers of Convnet
 
     Returns:
         TYPE: Description
@@ -231,7 +255,7 @@ def deconvolve_data(data, img_dict, layer_list):
 
     for sample in range(data.shape[0]):
 
-            #print("Forward pass: sample #", sample, "layer: ", elem[1], "neuron: ", elem[2])
+   
 
         #check if sample is not under top k samples
         if not len(img_dict[sample]):
@@ -332,7 +356,15 @@ def deconvolve_data(data, img_dict, layer_list):
 
 
 def get_activations(activation_save_path, layer_list, data, data_shape):
-
+    """function calls get_top_k_activations to get the samples that activates 
+    the fms in the Convnet and saves resulting dictionary 
+    
+    Args:
+        activation_save_path (string): path to save activations
+        layer_list (TYPE): list contain all layers of COnvnet
+        data (array): contains validation set
+        data_shape (TYPE): shape of validation set array
+    """
     top5 = get_top_k_activation(model, data, 5)
     pickle.dump(top5, open(activation_save_path, 'wb'))
     print("Activation_dict saved")
@@ -340,114 +372,33 @@ def get_activations(activation_save_path, layer_list, data, data_shape):
 
 
 def get_deconvolution(activation_save_path,deconv_save_path, data, layer_list):
-
+    """functions call the deconvolution method and saves resulting reconstruction
+    
+    Args:
+        activation_save_path (string): path of activation dict
+        deconv_save_path (string): path to save reconstructions
+        data (array): validation set
+        layer_list (lsit): list containing all layers of convent
+    """
     activation_dict = pickle.load(open(activation_save_path,'rb'))
     print("Activation_dict loaded")
 
-    #img_dict = get_img_dict(activation_dict)
 
-    #get_values(img_dict)
     deconv = deconvolve_data(data, activation_dict, layer_list)
     pickle.dump(deconv, open(deconv_save_path, 'wb'))
     print('deconvolved images are dumped')
 
 
-# def deconvolution_loop(deconv_save_path):
 
-#     while True:
-
-
-#         deconv = pickle.load(open(deconv_save_path,'rb'))
-#         print(deconv.keys())
-#         layer_name = input("Insert layer_name: ")
-#         #layer_name = 'block1_conv2'
-#         print ('There are {} units in layer {}'.format(len(deconv[layer_name]), layer_name))
-#         neuron_num = input("Insert unit number: ")
-#         #neuron_num = 42
-#         print('layer_name: {}, neuron: #{}'.format(layer_name, neuron_num))
-
-#         neuron = deconv[layer_name][int(neuron_num)]
-
-#         deconv_img = []
-#         img_list = []
-#         overlay_images = []
-#         deprocess_images_mode = []
-
-#         plt.figure(figsize=(10 , 10))
-
-#         for idx in range(5):
-#             deconv_img.append(deprocess_image(neuron[idx][1]))
-#             img_list.append(neuron[idx][0])
-#             plt.subplot(3,5,idx+1)
-#             plt.imshow(deprocess_image(neuron[idx][1]))
-
-
-#         print("läuft")
-#         for idx in range(5):
-
-#             plt.subplot(3,5,idx + 6)
-#             plt.imshow(data[neuron[idx][0][0]])
-
-
-#         for idx in range(5):
-
-#             deprocess_img = deprocess_image(neuron[idx][1])
-#             overlay_img = copy.deepcopy(data[neuron[idx][0][0]])
-
-#             for i in range(deprocess_img.shape[0]):
-#                 for jd in range(deprocess_img.shape[1]):
-#                     for cd in range(deprocess_img.shape[2]):
-#                         #print(stats.mode(deprocess_img, axis=None)[0])
-#                         if deprocess_img[i][jd][cd] <= 119 or deprocess_img[i][jd][cd] >= 128:
-#                             overlay_img[i][jd][cd] = deprocess_img[i][jd][cd]
-
-#             deprocess_img_mode = stats.mode(deprocess_img)
-#             deprocess_images_mode.append(deprocess_img_mode)
-#             plt.subplot(3,5,idx + 11)
-
-#             plt.imshow(overlay_img)
-
-#             overlay_images.append(overlay_img)
-
-
-#         plt.suptitle('layer: {}, neuron: #{}'.format( layer_name, neuron_num))
-
-#         plt.show()
-
-#         plt.clf()
-
-
-
-
-
-
-
-
-
-
-
-#         array = np.array(deconv[layer_name])
-
-
-# def load_deconv():
-
-
-#     deconv_save_path = '.convnet/Data/deconv_dict.pickle'
-#     deconv = pickle.load(open(deconv_save_path,'rb'))
-#     neuron = deconv['block1_conv1'][23][1]
-
-#     for key in deconv.keys():
-#         print(key)
-#         for idx ,elem in enumerate(deconv[key]):
-#             print(deconv[key][idx][0][0])
-
-#     #pdb.set_trace()
 
 
 def test_model(model,label):
-
-
-
+    """ test the model on validation set
+    
+    Args:
+        model (TYPE): model to be tested
+        label (TYPE): label grnuality
+    """
     x_test, y_test = load_data('test',label)
     results = model.evaluate(x_test, y_test)
     print(results)
@@ -455,40 +406,29 @@ def test_model(model,label):
 
 
 
-# def visualize_neurons():
-
-#     deconv_save_path = './convnet/Data/VGG16/deconv_dict_VGG.pickle'
-#     deconv = pickle.load(open(deconv_save_path,'rb'))
-
-
-#     key = 'block5_conv3'
-#     pdb.set_trace()
-#     plt.imshow(deprocess_image(deconv[key][14][0][1]))
-#     # pdb.set_trace()
-#     # for key in deconv.keys():
-#     #     deconv[key]
-#     #     for idx in range(len(deconv.keys())):
-#     #         plt.subplot(4,4,idx +1 )
-#     #         plt.imshow(deprocess_image( deconv[key][0][0][1]))
-
-#     plt.show()
-
-# def get_highest_act(act_save_path):
-
-#     highest_act_list = []
-#     act_dict = pickle.load(open(act_save_path, 'rb'))
-#     for key  in act_dict.keys():
-#         for k in act_dict[key].keys():
-#             continue
-
-#     #pdb.set_trace()
-
-
-
-
 def translate_representations(deconv_save_path, layer_list, model, num_neurons,steps,label,data):
+    
+    """ Functions calculates layer invariance for n random feature maps of each neuron
+        First n random neurons are chosen.
+        Activation array of shifted represnetation of neuron with highest activation is calculated.
+        Then a 2D Gaussian is plotted to the generated activtion array
+        Layer Invariance is calculated by taking the mean of the FWHM of all Gaussians
 
-    # trans_rep_save_path = os.path.join(dir_path,'trans_rep_dict_{}_num_neurons:{}_steps:{}_trans_input_type:{}.pickle'.format(data_name,num_neurons,steps,trans_input_type))
+
+    
+    Args:
+        deconv_save_path (string): save_path of reconstructed represnetations
+        layer_list (list): lsit containing all layers
+        model (model): COnvent
+        num_neurons (int): number of neurons to be randomly chosen
+        steps (int): transtaion stepsize
+        label (string): label type of classifer
+        data (array): validation set
+    
+    Returns:
+        TYPE: array containg results of translation
+    """
+
     deconv = pickle.load(open(deconv_save_path,'rb'))
 
 
@@ -524,12 +464,9 @@ def translate_representations(deconv_save_path, layer_list, model, num_neurons,s
             neuron_characteristics = neuron[0]
             print(neuron[0])
 
-            # if trans_input_type == 'samples':
-            # rep = data[neuron[0][0]] #at tuple position zero is image index
-            # else:
-            # rep = deprocess_image(neuron[1])#at position 1 is the deconvolved representation / adjust size
+
             rep = neuron[1]*255
-            #ipdb.set_trace()
+
             act_array = shift_and_activate(rep,model,key,neuron_idx,steps)
 
             if not np.any(act_array):
@@ -543,10 +480,8 @@ def translate_representations(deconv_save_path, layer_list, model, num_neurons,s
             FWHM_all_units = []
             linreg_all_units = []
 
-            #for elem in act_array:
-            #    FWHM_all_units.append(getFWHM_GaussianFitScaledAmp(elem))
-            #    linreg_all_units.append(get_linreg(elem,steps))
-            FWHM = getFWHM_GaussianFitScaledAmp(act_array) #np.nanmean(FWHM_all_units)
+     
+            FWHM = getFWHM_GaussianFitScaledAmp(act_array) 
             linreg = get_linreg_dir(act_array,steps)
  
             #np.nanmean(linreg_all_units)
@@ -577,8 +512,19 @@ def translate_representations(deconv_save_path, layer_list, model, num_neurons,s
 
 
 def shift_and_activate(rep,model,layer,neuron_idx,steps):
-
-
+    """shifts the reprentation to different directions and calculates activation
+    to generate activation map
+    
+    Args:
+        rep (array): representation
+        model (model): COnvnet
+        layer (layer): layer containg fm correspondding to represnetations
+        neuron_idx (TYPE): index of feature map
+        steps (TYPE): stepsize
+    
+    Returns:
+        TYPE: activation array of translated representation
+    """
     activation_model = Model(inputs=model.input, outputs=model.get_layer(layer).output)
 
 
@@ -631,28 +577,21 @@ def shift_non_zeros(n_list,model,key,steps, other_neurons):
 
 
 
-def translate_diff_steps_size(deconv_save_path,dir_path,layer_list, model,num_neurons,steps,label):
+# def translate_diff_steps_size(deconv_save_path,dir_path,layer_list, model,num_neurons,steps,label):
 
-    steps += 1
+#     steps += 1
 
-    trans_rep_save_path = os.path.join(dir_path,'trans_rep_all_steps_{}.pickle'.format(label))
-    res_list = []
-    for step in range(2,steps+1):
-        res = translate_representations(deconv_save_path,layer_list, model,num_neurons,step)
-        # FWHM_list = [item for item in layer_FWHM_dict.items()]
-        # FWHM_list.sort(key=lambda x:x[0])
-        res_list.append(res)
+#     trans_rep_save_path = os.path.join(dir_path,'trans_rep_all_steps_{}.pickle'.format(label))
+#     res_list = []
+#     for step in range(2,steps+1):
+#         res = translate_representations(deconv_save_path,layer_list, model,num_neurons,step)
+#         # FWHM_list = [item for item in layer_FWHM_dict.items()]
+#         # FWHM_list.sort(key=lambda x:x[0])
+#         res_list.append(res)
 
-    ipdb.set_trace()
-    pickle.dump(res_list, open(trans_rep_save_path, 'wb'))
-    print('translated images are dumped')
-    # for idx, elem in enumerate(FWHM_steps_list):
-    #     print('stepsize: {} \n'.format(idx+1))
-    #     for e in elem:
-    #         print (e)
-
-    #     print('\n')
-
+#     ipdb.set_trace()
+#     pickle.dump(res_list, open(trans_rep_save_path, 'wb'))
+#     print('translated images are dumped')
 
 
 
@@ -671,15 +610,15 @@ if __name__ == '__main__':
     get_deconv = False
 
 
-    trans_rep = True
+    trans_rep = False
     kolmogrov_complex = False
     create_individual_plots = True
     create_combined_plots = True
 
     # input for translation, either samples or deconvolved representations
     label = 'coarse'
-    num_neurons = 128
-    steps = 10
+    num_neurons = 30
+    steps = 15
 
 
 
@@ -734,25 +673,17 @@ if __name__ == '__main__':
 
     activation_save_path = os.path.join(dir_path, 'activation_dict_{}.pickle'.format(label))
     deconv_save_path = os.path.join(dir_path, 'deconv_dict_{}.pickle'.format(label))
-    # kolmogrov_save_path =os.path.join(dir_path, 'kol_mean_{}.pickle'.format(label))
 
 
-    # get activations for each neuron in each layer for given dataset
-    # and save them as pickle file
+
+
     if get_act == True:
         get_activations(activation_save_path, layer_list, data, data_shape)
 
-    # get deconvs for each neuron in each layer for given dataset
-    # and save them as pickle file
     if get_deconv == True:
         get_deconvolution(activation_save_path, deconv_save_path, data, layer_list)
 
-    # if highest_act == True:
-    #     get_highest_act(activation_save_path)
 
-    # #visualize specific neurons
-    # if deconv_loop == True:
-    #     deconvolution_loop(deconv_save_path,data)
 
     if trans_rep == True:
         # translate_diff_steps_size(deconv_save_path,dir_path,layer_list, model,num_neurons,steps,label)
