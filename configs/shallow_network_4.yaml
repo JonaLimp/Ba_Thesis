@@ -1,5 +1,5 @@
-NAME: 'Model with  Batch Normalization'
-NOTE: '#1 run BN'
+NAME: 'shallow_network_4'
+NOTE: 'Andrew_Kruger'
 
 
 RESUME: False
@@ -18,7 +18,7 @@ DATA_AUGMENTATION:
 
 
 MODEL:
-    TYPE: 'VGG16_BN'
+    TYPE: 'kruger_net'
     PRETRAINED: False
     HIDDEN: [4096,4096,1024]
     DROPOUT_ARR: [1,1,0]
@@ -29,13 +29,13 @@ MODEL:
 
 TRAIN:
     IS_TRAIN: True
-    EPOCHS: 500
+    EPOCHS: 300
     BATCH_SIZE: 64
     INIT_LR: 1.e-4
     MOMENTUM: 0.9
     TRAIN_PATIENCE: 50
     OPTIM: 'adam'
-    WEIGHT_DECAY: 0.0005
+    WEIGHT_DECAY: 1.e-6
     NUM: 0
     VALID: 0.1
     VALID_FREQ: 1

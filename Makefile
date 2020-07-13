@@ -1,5 +1,5 @@
 # This must match the Python version in the Docker image.
-PYTHON=python3.6
+PYTHON=python3
 
 all:
 

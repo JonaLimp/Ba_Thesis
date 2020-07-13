@@ -9,9 +9,9 @@ from model import create_model
 from pathlib import Path
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import yaml
+import os
 
-
-import pdb
+import ipdb
 
 
 class Trainer(object):
@@ -42,7 +42,12 @@ class Trainer(object):
 
         self.model_name = f"{config.NAME}_{config.NOTE}_{config.PRE_PROCESSING.LABEL}_LR={config.TRAIN.INIT_LR}_HIDDEN_{config.MODEL.HIDDEN}_BS={config.TRAIN.BATCH_SIZE}"
         self.save_dir = Path(config.CKPT_DIR)
-        self.save_path = self.save_dir / self.model_name
+
+        self.save_dir = os.path.join(self.save_dir, config.NAME)
+
+        if not os.path.exists(self.save_dir):
+            os.makedirs(self.save_dir)
+        self.save_path = os.path.join(self.save_dir,self.model_name)
         file = open(config.YAML_DIR + "/" + self.model_name, "w")
         yaml.dump(cnfg, file)
 
@@ -138,7 +143,9 @@ class Trainer(object):
 
         # prepare dataset for hierachical labelling 
 
-        if self.label == "fine and coarse":
+        if self.label != "fine" and self.label != "coarse":
+
+
             y_1_train, y_2_train = np.split(self.y_train, [100], 1)
             y_1_train = np.squeeze(y_1_train, axis=2)
             y_2_train = np.squeeze(y_2_train, axis=2)
@@ -148,6 +155,7 @@ class Trainer(object):
             y_1_val = np.squeeze(y_1_val, axis=2)
             y_2_val = np.squeeze(y_2_val, axis=2)
             dict_y_val = {"fine": y_1_val, "coarse": y_2_val}
+
 
         if self.data_aug == True:
 
@@ -159,9 +167,9 @@ class Trainer(object):
                 height_shift_range=self.height_shift_range,
                 horizontal_flip=self.horizontal_flip
                 )
-
+            # datagen = get_datagen()
             datagen.fit(self.x_train)
-
+            
 
         # help params 
 
@@ -197,7 +205,7 @@ class Trainer(object):
                             self.x_train, 
                             self.y_train, 
                             batch_size=self.batchsize),
-                        steps_per_epoch=None,
+                        steps_per_epoch= self.x_train.shape[0] // self.batchsize,
                         epochs= epoch + 1, 
                         validation_data=(self.x_val,self.y_val), 
                         validation_freq=self.val_freq,
@@ -225,11 +233,14 @@ class Trainer(object):
                 else:
 
                     history = self.model.fit_generator(
-                        datagen.flow(
-                            self.x_train, 
-                            dict_y_train, 
-                            batch_size=self.batchsize),
-                        steps_per_epoch=None,
+                        # datagen.flow(
+                        #     self.x_train, 
+                        #     dict_y_train, 
+                        #     batch_size=self.batchsize)
+                        self.generator_two_outputs(self.x_train, dict_y_train['fine'], dict_y_train['coarse'], datagen, self.batchsize),
+                        # steps_per_epoch=None,
+                        steps_per_epoch= self.x_train.shape[0] // self.batchsize,
+
                         epochs= epoch + 1, 
                         validation_data=(self.x_val, dict_y_val), 
                         validation_freq=self.val_freq,
@@ -314,6 +325,10 @@ class Trainer(object):
             if not self.check_improvement(is_best):
                 return
 
+        model_json = self.model.to_json()
+        with open(str(self.save_path) + "model.json", "w") as json_file:
+            json_file.write(model_json)
+
 
 
 
@@ -342,9 +357,9 @@ class Trainer(object):
     def save_checkpoint(self, history, is_best):
 
         if is_best:
-            self.model.save(Path(str(self.save_path) + "_best_val_loss"))
+            self.model.save(Path(str(self.save_path) + "_best_val_loss" +'.h5'))
 
-        self.model.save(self.save_path)
+        self.model.save(str(self.save_path) + '.h5')
 
 
     def check_improvement(self, is_best):
@@ -359,6 +374,46 @@ class Trainer(object):
             self.logger.info("[!] No improvement in a while, stopping training.")
             return False
         return True
+
+    def generator_two_outputs(self,X , y_fine, y_coarse, datagen, batch_size):
+
+        # pdb.set_trace()
+        
+        # datagen.fit(self.x_train)
+
+        while True:
+            gen_coarse = datagen.flow(X, y_coarse, batch_size=batch_size)
+            gen_fine = datagen.flow(X, y_fine, batch_size=batch_size)
+
+            Y_coarse_sample = gen_coarse.next()
+            Y_fine_sample = gen_fine.next()
+            
+            # ipdb.set_trace()
+            yield Y_coarse_sample[0], [Y_fine_sample[1], Y_coarse_sample[1]]
+        
+
+        # while True:
+
+        #     pdb.set_trace()
+        #     yield Y_coarse_sample[0], [Y_fine_sample[1]], Y_coarse_sample[1]
+
+    # def num_batch_per_epoch(self):
+    #   'Denotes the number of batches per epoch'
+    #   return int(np.floor(len(self.x_train.shape[0]) / self.batch_size))
+   
+    # def get_datagen(self):
+            
+    #         datagen = ImageDataGenerator(
+    #         featurewise_center=self.featurewise_center,
+    #         featurewise_std_normalization=self.featurewise_std_normalization,
+    #         rotation_range=self.rotation_range,
+    #         width_shift_range=self.width_shift_range,
+    #         height_shift_range=self.height_shift_range,
+    #         horizontal_flip=self.horizontal_flip
+    #         )
+    #         return datagen
+
+
 
 
     def log_scalar(self, tag, value, step):

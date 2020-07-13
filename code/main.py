@@ -16,6 +16,11 @@ import yaml
 
 import pdb
 
+from numpy.random import seed
+seed(42)
+from tensorflow import set_random_seed
+set_random_seed(42)
+
 
 def parse_args():
     """
@@ -81,6 +86,7 @@ def main(config,cnfg):
 
 
 if __name__ == "__main__":
+
     args = parse_args()
 
     print("Called with args:")

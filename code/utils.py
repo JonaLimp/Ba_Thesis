@@ -1,19 +1,71 @@
 import numpy as np
 import scipy.optimize as opt
-import pdb
-import keras
-from keras.datasets import cifar100
-from keras.applications.vgg16 import preprocess_input #TODO maybe not needed
-from keras.preprocessing import image
-from keras.models import Sequential
-from keras.layers import Flatten, Dense, Dropout, Activation
-from keras import layers
-from keras.layers.convolutional import Conv2D, MaxPooling2D, ZeroPadding2D
-from keras import layers
-from keras.models import Model
+import ipdb
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.datasets import cifar100
+from model import create_model
+from tensorflow.keras import models
+import tensorflow.keras.backend as K
+import matplotlib.pyplot as plt
+from scipy import stats
+import os
+import copy
+from PIL import Image
+import pickle
 
-import code.model as m
+def get_linreg(img,steps):
+    # ipdb.set_trace()    
+    # steps-=1
+    # img = np.delete(img,img.shape[0]-1,0)
+    # img = np.delete(img,img.shape[1]-1,1)
+    # img = np.delete(img,0,0)
+    # img = np.delete(img,0,1)
 
+
+    center = steps
+
+
+    left = img[center,:center+1]
+    right = img[center,center:]
+    up = img[:center+1,center]
+    down = img[center:,center]
+
+    
+    # ipdb.set_trace()
+
+    #step_space = np.linspace(0,steps+1,steps+1)
+    step_space = np.arange(steps+1)
+
+    directions =[left,up,down,right]
+
+    slopes = []
+    for direction in directions:
+        slope, _, _, _, _ = stats.linregress(step_space,direction)
+        slopes.append(abs(slope))
+
+
+    return np.mean(slopes)
+
+def get_linreg_dir(img,steps):
+    directions = ((0,1,0),(0,-1,0),(1,0,0),(-1,0,0),(-1,1,0),(1,-1,0),(-1,-1,0),(1,1,0))
+
+    slopes = []
+    step_space = np.arange(steps+1)
+
+    for direction in directions:
+        dir_values = []
+        for ste in range(0,steps+1):
+            cord = np.array(direction)*ste
+  
+            dir_values.append(img[cord[0]+steps,cord[1]+steps])
+        slope, _, _, _, _ = stats.linregress(step_space,dir_values)
+
+        slopes.append(slope)
+        # print('dir',dir_values)
+
+    return np.mean(slopes)
+          
 def twoD_GaussianScaledAmp(xy, xo, yo, sigma, amplitude, offset):
     """Function to fit, returns 2D gaussian function as 1D array"""
     x,y = xy
@@ -42,8 +94,9 @@ def getFWHM_GaussianFitScaledAmp(img):
                                    img_scaled.ravel(), p0=initial_guess,
                                    bounds = ((img.shape[1]*0.4, img.shape[0]*0.4, 1, 0.5, -0.1),
                                          (img.shape[1]*0.6, img.shape[0]*0.6, img.shape[1], 1.5, 0.5)))
-    except:
-        return 0
+    except Exception as e:
+        print(e)
+        return np.nan
     xcenter, ycenter, sigma, amp, offset = popt[0], popt[1], popt[2], popt[3], popt[4]
     FWHM = np.abs(4*sigma*np.sqrt(-0.5*np.log(0.5)))
     return FWHM
@@ -51,24 +104,30 @@ def getFWHM_GaussianFitScaledAmp(img):
 #calling example: img is your image
 #FWHM = getFWHM_GaussianFitScaledAmp(img)
 
-def load_model(weights_path,data_shape, model_type, label):
+def load_model(data_shape, weights_path,model_type, label):
     """
     Load and compile VGG model
     args: weights_path (str) trained weights file path
     returns model (Keras model)
     """
-    # either VGG16(), VGG16_keras or BN_VGG
-    if model_type == 'VGG_16':
-        model = VGG_16_keras(weights_path,data_shape)
+    # # either VGG16(), VGG16_keras or BN_VGG
+    # if model_type == 'VGG_16':
+    #     model = VGG_16_keras(weights_path,data_shape)
 
-    if model_type == 'BN_VGG':
-        model = BN_VGG(weights_path,data_shape)
-    if model_type == 'code_BN_VGG':
-        model = create_model(type='BN_VGG',pretrained = False, img_shape = data_shape, n_hidden = [4096,4096,1024], dropout = 0.5,
-         label = label, arr_channels = [], VGG16_top = False, use_gen = False, dropout_arr = [1,1,0], weight_decay = 0.0005)
+    # if model_type == 'BN_VGG':
+    #     model = BN_VGG(weights_path,data_shape)
+    # if model_type == 'code_BN_VGG':
+    #     model = create_model(type='VGG16_BN',pretrained = False, img_shape = data_shape, n_hidden = [4096,4096,1024], dropout = 0.5,
+    #      label = label, arr_channels = [], VGG16_top = False, use_gen = False, dropout_arr = [1,1,0], weight_decay = 0.0005)
+
+
+    print("Loading weights...")
+    pdb.set_trace()
+    model = models.load_model(weights_path)
 
     model.compile(optimizer="sgd", loss='categorical_crossentropy', metrics = ["accuracy", "top_k_categorical_accuracy"])
-    #pdb.set_trace()
+    model.summary()
+
     return model
 
 def one_hot_encoding(y_train, y_test, classes):
@@ -78,22 +137,44 @@ def one_hot_encoding(y_train, y_test, classes):
     return y_train, y_test
 
 
-def load_data(data_type):
-    classes = 100
-    (x_train, y_train), (x_test, y_test) = cifar100.load_data('fine')
-    y_train, y_test = one_hot_encoding(y_train, y_test, classes)
+def load_data(data_type,label):
+    
+    if label == 'fine':
 
-    width, height, channels = x_train.shape[1], x_train.shape[2], x_train.shape[3]
-    x_train = x_train.reshape((x_train.shape[0], width, height, channels))
+        classes = 100
+        (x_train, y_train), (x_test, y_test) = cifar100.load_data('fine')
+        y_train, y_test = one_hot_encoding(y_train, y_test, classes)
 
-    width, height, channels = x_test.shape[1], x_test.shape[2], x_test.shape[3]
-    x_test = x_test.reshape((x_test.shape[0], width, height, channels))
+        width, height, channels = x_train.shape[1], x_train.shape[2], x_train.shape[3]
+        x_train = x_train.reshape((x_train.shape[0], width, height, channels))
 
-    x_train = x_train.astype("float32")
-    x_test = x_test.astype("float32")
+        width, height, channels = x_test.shape[1], x_test.shape[2], x_test.shape[3]
+        x_test = x_test.reshape((x_test.shape[0], width, height, channels))
 
-    x_train /= 255.0
-    x_test /= 255.0
+        x_train = x_train.astype("float32")
+        x_test = x_test.astype("float32")
+
+        x_train /= 255.0
+        x_test /= 255.0
+
+    else:
+
+        classes = 20
+        (x_train, y_train), (x_test, y_test) = cifar100.load_data('coarse')
+        y_train, y_test = one_hot_encoding(y_train, y_test, classes)
+
+        width, height, channels = x_train.shape[1], x_train.shape[2], x_train.shape[3]
+        x_train = x_train.reshape((x_train.shape[0], width, height, channels))
+
+        width, height, channels = x_test.shape[1], x_test.shape[2], x_test.shape[3]
+        x_test = x_test.reshape((x_test.shape[0], width, height, channels))
+
+        x_train = x_train.astype("float32")
+        x_test = x_test.astype("float32")
+
+        x_train /= 255.0
+        x_test /= 255.0
+
 
     if data_type == 'act':
 
@@ -122,6 +203,16 @@ def deprocess_image(x):
         x = x.transpose((1, 2, 0))
     x = np.clip(x, 0, 255).astype('uint8')
     return x
+
+def postprocess(deconv):
+    if K.image_data_format == 'channels_first':
+        deconv = np.transpose(deconv, (1, 2, 0))
+    deconv = deconv - deconv.min()
+    deconv *= 1.0 / (deconv.max() + 1e-8)
+    deconv = deconv[:, :, ::-1]
+    uint8_deconv = (deconv * 255).astype(np.uint8)
+    img = Image.fromarray(uint8_deconv, 'RGB')
+    return img
 """
                 idx = 1
 
@@ -154,7 +245,7 @@ def get_values(img_dict):
 
                 print(e[2])
 
-def deconvolution_loop(deconv_save_path):
+def deconvolution_loop(deconv_save_path,data):
 
     while True:
 

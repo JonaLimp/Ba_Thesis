@@ -1,5 +1,5 @@
-NAME: 'VGG16_miss_max_augmented_fine'
-NOTE: '#1 run one MPL missing, DA  '
+NAME: 'shallow_network_1'
+NOTE: '[C_32,C32,Do_0.3,MP],[C_64,C64,Do_0.4,MP],[C_128,C128,C_128,Do_0.4,MP]'
 
 
 RESUME: False
@@ -18,7 +18,7 @@ DATA_AUGMENTATION:
 
 
 MODEL:
-    TYPE: 'VGG16_miss_Max'
+    TYPE: 'shallow_network_1'
     PRETRAINED: False
     HIDDEN: [4096,4096,1024]
     DROPOUT_ARR: [1,1,0]
@@ -29,7 +29,7 @@ MODEL:
 
 TRAIN:
     IS_TRAIN: True
-    EPOCHS: 500
+    EPOCHS: 300
     BATCH_SIZE: 64
     INIT_LR: 1.e-4
     MOMENTUM: 0.9
