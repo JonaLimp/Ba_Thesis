@@ -11,7 +11,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import yaml
 import os
 
-import ipdb
+
 
 
 class Trainer(object):
