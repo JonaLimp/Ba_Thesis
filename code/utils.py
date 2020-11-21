@@ -14,65 +14,76 @@ import copy
 from PIL import Image
 import pickle
 
-def get_linreg(img,steps):
-    # ipdb.set_trace()    
+
+def get_linreg(img, steps):
+    # ipdb.set_trace()
     # steps-=1
     # img = np.delete(img,img.shape[0]-1,0)
     # img = np.delete(img,img.shape[1]-1,1)
     # img = np.delete(img,0,0)
     # img = np.delete(img,0,1)
 
-
     center = steps
 
+    left = img[center, : center + 1]
+    right = img[center, center:]
+    up = img[: center + 1, center]
+    down = img[center:, center]
 
-    left = img[center,:center+1]
-    right = img[center,center:]
-    up = img[:center+1,center]
-    down = img[center:,center]
-
-    
     # ipdb.set_trace()
 
-    #step_space = np.linspace(0,steps+1,steps+1)
-    step_space = np.arange(steps+1)
+    # step_space = np.linspace(0,steps+1,steps+1)
+    step_space = np.arange(steps + 1)
 
-    directions =[left,up,down,right]
+    directions = [left, up, down, right]
 
     slopes = []
     for direction in directions:
-        slope, _, _, _, _ = stats.linregress(step_space,direction)
+        slope, _, _, _, _ = stats.linregress(step_space, direction)
         slopes.append(abs(slope))
-
 
     return np.mean(slopes)
 
-def get_linreg_dir(img,steps):
-    directions = ((0,1,0),(0,-1,0),(1,0,0),(-1,0,0),(-1,1,0),(1,-1,0),(-1,-1,0),(1,1,0))
+
+def get_linreg_dir(img, steps):
+    directions = (
+        (0, 1, 0),
+        (0, -1, 0),
+        (1, 0, 0),
+        (-1, 0, 0),
+        (-1, 1, 0),
+        (1, -1, 0),
+        (-1, -1, 0),
+        (1, 1, 0),
+    )
 
     slopes = []
-    step_space = np.arange(steps+1)
+    step_space = np.arange(steps + 1)
 
     for direction in directions:
         dir_values = []
-        for ste in range(0,steps+1):
-            cord = np.array(direction)*ste
-  
-            dir_values.append(img[cord[0]+steps,cord[1]+steps])
-        slope, _, _, _, _ = stats.linregress(step_space,dir_values)
+        for ste in range(0, steps + 1):
+            cord = np.array(direction) * ste
+
+            dir_values.append(img[cord[0] + steps, cord[1] + steps])
+        slope, _, _, _, _ = stats.linregress(step_space, dir_values)
 
         slopes.append(slope)
         # print('dir',dir_values)
 
     return np.mean(slopes)
-          
+
+
 def twoD_GaussianScaledAmp(xy, xo, yo, sigma, amplitude, offset):
     """Function to fit, returns 2D gaussian function as 1D array"""
-    x,y = xy
+    x, y = xy
     xo = float(xo)
     yo = float(yo)
-    g = offset + amplitude*np.exp( - (((x-xo)**2)/(2*sigma**2) + ((y-yo)**2)/(2*sigma**2)))
+    g = offset + amplitude * np.exp(
+        -(((x - xo) ** 2) / (2 * sigma ** 2) + ((y - yo) ** 2) / (2 * sigma ** 2))
+    )
     return g.ravel()
+
 
 def getFWHM_GaussianFitScaledAmp(img):
     """Get FWHM(x,y) of a blob by 2D gaussian fitting
@@ -84,27 +95,35 @@ def getFWHM_GaussianFitScaledAmp(img):
     x = np.linspace(0, img.shape[1], img.shape[1])
     y = np.linspace(0, img.shape[0], img.shape[0])
     x, y = np.meshgrid(x, y)
-    #Parameters: xpos, ypos, sigma, amp, baseline
-    initial_guess = (img.shape[1]/2,img.shape[0]/2,1,1,0)
+    # Parameters: xpos, ypos, sigma, amp, baseline
+    initial_guess = (img.shape[1] / 2, img.shape[0] / 2, 1, 1, 0)
     # subtract background and rescale image into [0,1], with floor clipping
-    bg = np.percentile(img,5)
-    img_scaled = np.clip((img - bg) / (img.max() - bg),0,1)
+    bg = np.percentile(img, 5)
+    img_scaled = np.clip((img - bg) / (img.max() - bg), 0, 1)
     try:
-        popt, pcov = opt.curve_fit(twoD_GaussianScaledAmp, (x, y),
-                                   img_scaled.ravel(), p0=initial_guess,
-                                   bounds = ((img.shape[1]*0.4, img.shape[0]*0.4, 1, 0.5, -0.1),
-                                         (img.shape[1]*0.6, img.shape[0]*0.6, img.shape[1], 1.5, 0.5)))
+        popt, pcov = opt.curve_fit(
+            twoD_GaussianScaledAmp,
+            (x, y),
+            img_scaled.ravel(),
+            p0=initial_guess,
+            bounds=(
+                (img.shape[1] * 0.4, img.shape[0] * 0.4, 1, 0.5, -0.1),
+                (img.shape[1] * 0.6, img.shape[0] * 0.6, img.shape[1], 1.5, 0.5),
+            ),
+        )
     except Exception as e:
         print(e)
         return np.nan
     xcenter, ycenter, sigma, amp, offset = popt[0], popt[1], popt[2], popt[3], popt[4]
-    FWHM = np.abs(4*sigma*np.sqrt(-0.5*np.log(0.5)))
+    FWHM = np.abs(4 * sigma * np.sqrt(-0.5 * np.log(0.5)))
     return FWHM
 
-#calling example: img is your image
-#FWHM = getFWHM_GaussianFitScaledAmp(img)
 
-def load_model(data_shape, weights_path,model_type, label):
+# calling example: img is your image
+# FWHM = getFWHM_GaussianFitScaledAmp(img)
+
+
+def load_model(data_shape, weights_path, model_type, label):
     """
     Load and compile VGG model
     args: weights_path (str) trained weights file path
@@ -120,15 +139,19 @@ def load_model(data_shape, weights_path,model_type, label):
     #     model = create_model(type='VGG16_BN',pretrained = False, img_shape = data_shape, n_hidden = [4096,4096,1024], dropout = 0.5,
     #      label = label, arr_channels = [], VGG16_top = False, use_gen = False, dropout_arr = [1,1,0], weight_decay = 0.0005)
 
-
     print("Loading weights...")
     pdb.set_trace()
     model = models.load_model(weights_path)
 
-    model.compile(optimizer="sgd", loss='categorical_crossentropy', metrics = ["accuracy", "top_k_categorical_accuracy"])
+    model.compile(
+        optimizer="sgd",
+        loss="categorical_crossentropy",
+        metrics=["accuracy", "top_k_categorical_accuracy"],
+    )
     model.summary()
 
     return model
+
 
 def one_hot_encoding(y_train, y_test, classes):
 
@@ -137,12 +160,12 @@ def one_hot_encoding(y_train, y_test, classes):
     return y_train, y_test
 
 
-def load_data(data_type,label):
-    
-    if label == 'fine':
+def load_data(data_type, label):
+
+    if label == "fine":
 
         classes = 100
-        (x_train, y_train), (x_test, y_test) = cifar100.load_data('fine')
+        (x_train, y_train), (x_test, y_test) = cifar100.load_data("fine")
         y_train, y_test = one_hot_encoding(y_train, y_test, classes)
 
         width, height, channels = x_train.shape[1], x_train.shape[2], x_train.shape[3]
@@ -160,7 +183,7 @@ def load_data(data_type,label):
     else:
 
         classes = 20
-        (x_train, y_train), (x_test, y_test) = cifar100.load_data('coarse')
+        (x_train, y_train), (x_test, y_test) = cifar100.load_data("coarse")
         y_train, y_test = one_hot_encoding(y_train, y_test, classes)
 
         width, height, channels = x_train.shape[1], x_train.shape[2], x_train.shape[3]
@@ -175,22 +198,21 @@ def load_data(data_type,label):
         x_train /= 255.0
         x_test /= 255.0
 
-
-    if data_type == 'act':
+    if data_type == "act":
 
         data = x_test
         data_shape = data.shape
 
         return data, data_shape
 
-    if data_type == 'test':
+    if data_type == "test":
         return x_test, y_test
 
 
 def deprocess_image(x):
     # normalize tensor: center on 0., ensure std is 0.1
     x -= x.mean()
-    x /= (x.std() + K.epsilon())
+    x /= x.std() + K.epsilon()
     x *= 0.1
 
     # clip to [0, 1]
@@ -199,20 +221,23 @@ def deprocess_image(x):
 
     # convert to RGB array
     x *= 255
-    if K.image_data_format() == 'channels_first':
+    if K.image_data_format() == "channels_first":
         x = x.transpose((1, 2, 0))
-    x = np.clip(x, 0, 255).astype('uint8')
+    x = np.clip(x, 0, 255).astype("uint8")
     return x
 
+
 def postprocess(deconv):
-    if K.image_data_format == 'channels_first':
+    if K.image_data_format == "channels_first":
         deconv = np.transpose(deconv, (1, 2, 0))
     deconv = deconv - deconv.min()
     deconv *= 1.0 / (deconv.max() + 1e-8)
     deconv = deconv[:, :, ::-1]
     uint8_deconv = (deconv * 255).astype(np.uint8)
-    img = Image.fromarray(uint8_deconv, 'RGB')
+    img = Image.fromarray(uint8_deconv, "RGB")
     return img
+
+
 """
                 idx = 1
 
@@ -232,8 +257,8 @@ def postprocess(deconv):
                 print(elem)
 """
 
-            #for i in range(1, len(deconv_layers)):
-            #    deconv_layers[i].up(deconv_layers[i - 1].up_data)
+# for i in range(1, len(deconv_layers)):
+#    deconv_layers[i].up(deconv_layers[i - 1].up_data)
 
 
 def get_values(img_dict):
@@ -245,19 +270,21 @@ def get_values(img_dict):
 
                 print(e[2])
 
-def deconvolution_loop(deconv_save_path,data):
+
+def deconvolution_loop(deconv_save_path, data):
 
     while True:
 
-
-        deconv = pickle.load(open(deconv_save_path,'rb'))
+        deconv = pickle.load(open(deconv_save_path, "rb"))
         print(deconv.keys())
         layer_name = input("Insert layer_name: ")
-        #layer_name = 'block1_conv2'
-        print ('There are {} units in layer {}'.format(len(deconv[layer_name]), layer_name))
+        # layer_name = 'block1_conv2'
+        print(
+            "There are {} units in layer {}".format(len(deconv[layer_name]), layer_name)
+        )
         neuron_num = input("Insert unit number: ")
-        #neuron_num = 42
-        print('layer_name: {}, neuron: #{}'.format(layer_name, neuron_num))
+        # neuron_num = 42
+        print("layer_name: {}, neuron: #{}".format(layer_name, neuron_num))
 
         neuron = deconv[layer_name][int(neuron_num)]
 
@@ -266,21 +293,19 @@ def deconvolution_loop(deconv_save_path,data):
         overlay_images = []
         deprocess_images_mode = []
 
-        plt.figure(figsize=(10 , 10))
+        plt.figure(figsize=(10, 10))
 
         for idx in range(5):
             deconv_img.append(deprocess_image(neuron[idx][1]))
             img_list.append(neuron[idx][0])
-            plt.subplot(3,5,idx+1)
+            plt.subplot(3, 5, idx + 1)
             plt.imshow(deprocess_image(neuron[idx][1]))
-
 
         print("läuft")
         for idx in range(5):
 
-            plt.subplot(3,5,idx + 6)
+            plt.subplot(3, 5, idx + 6)
             plt.imshow(data[neuron[idx][0][0]])
-
 
         for idx in range(5):
 
@@ -290,35 +315,25 @@ def deconvolution_loop(deconv_save_path,data):
             for i in range(deprocess_img.shape[0]):
                 for jd in range(deprocess_img.shape[1]):
                     for cd in range(deprocess_img.shape[2]):
-                        #print(stats.mode(deprocess_img, axis=None)[0])
-                        if deprocess_img[i][jd][cd] <= 119 or deprocess_img[i][jd][cd] >= 128:
+                        # print(stats.mode(deprocess_img, axis=None)[0])
+                        if (
+                            deprocess_img[i][jd][cd] <= 119
+                            or deprocess_img[i][jd][cd] >= 128
+                        ):
                             overlay_img[i][jd][cd] = deprocess_img[i][jd][cd]
 
             deprocess_img_mode = stats.mode(deprocess_img)
             deprocess_images_mode.append(deprocess_img_mode)
-            plt.subplot(3,5,idx + 11)
+            plt.subplot(3, 5, idx + 11)
 
             plt.imshow(overlay_img)
 
             overlay_images.append(overlay_img)
 
-
-        plt.suptitle('layer: {}, neuron: #{}'.format( layer_name, neuron_num))
+        plt.suptitle("layer: {}, neuron: #{}".format(layer_name, neuron_num))
 
         plt.show()
 
         plt.clf()
 
-
-
-
-
-
-
-
-
-
-
         array = np.array(deconv[layer_name])
-
-

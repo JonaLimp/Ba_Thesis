@@ -17,8 +17,10 @@ import yaml
 import pdb
 
 from numpy.random import seed
+
 seed(42)
 from tensorflow import set_random_seed
+
 set_random_seed(42)
 
 
@@ -55,7 +57,7 @@ def parse_args():
     return args
 
 
-def main(config,cnfg):
+def main(config, cnfg):
     """
     Main
     """
@@ -65,7 +67,7 @@ def main(config,cnfg):
         config.TRAIN.VALID,
         config.TEST.NUM,
         config.PRE_PROCESSING.LABEL,
-        config.DATA_AUGMENTATION.DATA_AUG
+        config.DATA_AUGMENTATION.DATA_AUG,
     )
 
     cfg_set_log_file(cfg)
@@ -118,4 +120,4 @@ if __name__ == "__main__":
     if args.gpu:
         set_random_seed(cfg.SEED)
 
-    main(cfg,cnfg)
+    main(cfg, cnfg)

@@ -122,7 +122,7 @@ __C.CKPT_DIR = "./ckpt"
 # Directory in which Tensorboard logs are stored
 __C.TENSORBOARD_DIR = "./tensorboard"
 
-#Directory for yamls
+# Directory for yamls
 __C.YAML_DIR = "./yamls"
 
 # Whether to use Tensorboard
@@ -142,7 +142,7 @@ __C.PRE_PROCESSING = edict()
 __C.PRE_PROCESSING.LABEL = "fine"
 
 
-#Whether to use data augmentation
+# Whether to use data augmentation
 __C.DATA_AUGMENTATION = edict()
 
 __C.DATA_AUGMENTATION.DATA_AUG = False
@@ -153,9 +153,9 @@ __C.DATA_AUGMENTATION.FEATUREWISE_STD_NORMALIZATION = False
 
 __C.DATA_AUGMENTATION.ROTATION_RANGE = 0
 
-__C.DATA_AUGMENTATION.WIDTH_SHIFT_RANGE = 0.
+__C.DATA_AUGMENTATION.WIDTH_SHIFT_RANGE = 0.0
 
-__C.DATA_AUGMENTATION.HEIGHT_SHIFT_RANGE= 0.
+__C.DATA_AUGMENTATION.HEIGHT_SHIFT_RANGE = 0.0
 
 __C.DATA_AUGMENTATION.HORIZONTAL_FLIP = False
 
@@ -207,8 +207,6 @@ __C.TRAIN.SCHEDULE = [0.98]
 __C.TRAIN.LOSS = "mse"
 
 __C.TRAIN.VALID_FREQ = 2
-
-
 
 
 #

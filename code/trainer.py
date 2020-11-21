@@ -15,8 +15,7 @@ import ipdb
 
 
 class Trainer(object):
-    """
-    """
+    """"""
 
     def __init__(self, dataset, config, cnfg):
         """
@@ -27,7 +26,7 @@ class Trainer(object):
         :param dataset  : (Object) dataset
         """
 
-        #logger parmas
+        # logger parmas
         self.logger = logging.getLogger(__name__)
         logging.getLogger("PIL.PngImagePlugin").setLevel(logging.WARNING)
         tf.logging.set_verbosity(tf.logging.INFO)
@@ -47,7 +46,7 @@ class Trainer(object):
 
         if not os.path.exists(self.save_dir):
             os.makedirs(self.save_dir)
-        self.save_path = os.path.join(self.save_dir,self.model_name)
+        self.save_path = os.path.join(self.save_dir, self.model_name)
         file = open(config.YAML_DIR + "/" + self.model_name, "w")
         yaml.dump(cnfg, file)
 
@@ -64,7 +63,7 @@ class Trainer(object):
                 config.MODEL.VGG16_top,
                 config.MODEL.USE_GEN,
                 config.MODEL.DROPOUT_ARR,
-                config.TRAIN.WEIGHT_DECAY
+                config.TRAIN.WEIGHT_DECAY,
             )
         else:
             self.model = tf.keras.models.load_model(self.save_path)
@@ -96,16 +95,13 @@ class Trainer(object):
         self.val_freq = config.TRAIN.VALID_FREQ
         self.train_patience = config.TRAIN.TRAIN_PATIENCE
 
-
-
-        #tensorboard params
-
+        # tensorboard params
 
         self.tensor_dir = Path(config.TENSORBOARD_DIR) / self.model_name
         self.logger.info(f"[*] Saving tensorboard logs to {self.tensor_dir}")
-        
-        #overwrite existing tensorboards
-        #if they are not retrained
+
+        # overwrite existing tensorboards
+        # if they are not retrained
 
         if not self.tensor_dir.exists():
             self.tensor_dir.mkdir(parents=True)
@@ -118,33 +114,31 @@ class Trainer(object):
                         x.unlink()
         self.file_writer = tf.summary.FileWriter(self.tensor_dir)
 
-        #improvement params
+        # improvement params
         self.counter = 0
         self.best_val_loss = np.inf
         self.is_best = True
 
         self.data_aug = config.DATA_AUGMENTATION.DATA_AUG
-        self.featurewise_center=config.DATA_AUGMENTATION.FEATUREWISE_CENTER
-        self.featurewise_std_normalization=config.DATA_AUGMENTATION.FEATUREWISE_STD_NORMALIZATION 
-        self.rotation_range=config.DATA_AUGMENTATION.ROTATION_RANGE
-        self.width_shift_range=config.DATA_AUGMENTATION.WIDTH_SHIFT_RANGE
-        self.height_shift_range=config.DATA_AUGMENTATION.HEIGHT_SHIFT_RANGE
-        self.horizontal_flip=config.DATA_AUGMENTATION.HORIZONTAL_FLIP
+        self.featurewise_center = config.DATA_AUGMENTATION.FEATUREWISE_CENTER
+        self.featurewise_std_normalization = (
+            config.DATA_AUGMENTATION.FEATUREWISE_STD_NORMALIZATION
+        )
+        self.rotation_range = config.DATA_AUGMENTATION.ROTATION_RANGE
+        self.width_shift_range = config.DATA_AUGMENTATION.WIDTH_SHIFT_RANGE
+        self.height_shift_range = config.DATA_AUGMENTATION.HEIGHT_SHIFT_RANGE
+        self.horizontal_flip = config.DATA_AUGMENTATION.HORIZONTAL_FLIP
         # self.file_writer.set_as_default()
-
-
 
     def train(self):
 
         """
         Train the model on the training set.
         """
-        
 
-        # prepare dataset for hierachical labelling 
+        # prepare dataset for hierachical labelling
 
         if self.label != "fine" and self.label != "coarse":
-
 
             y_1_train, y_2_train = np.split(self.y_train, [100], 1)
             y_1_train = np.squeeze(y_1_train, axis=2)
@@ -156,7 +150,6 @@ class Trainer(object):
             y_2_val = np.squeeze(y_2_val, axis=2)
             dict_y_val = {"fine": y_1_val, "coarse": y_2_val}
 
-
         if self.data_aug == True:
 
             datagen = ImageDataGenerator(
@@ -165,17 +158,15 @@ class Trainer(object):
                 rotation_range=self.rotation_range,
                 width_shift_range=self.width_shift_range,
                 height_shift_range=self.height_shift_range,
-                horizontal_flip=self.horizontal_flip
-                )
+                horizontal_flip=self.horizontal_flip,
+            )
             # datagen = get_datagen()
             datagen.fit(self.x_train)
-            
 
-        # help params 
+        # help params
 
-        layer_norms = np.zeros([self.epochs,len(self.model.layers)])
+        layer_norms = np.zeros([self.epochs, len(self.model.layers)])
         is_best = False
-
 
         for epoch in range(self.epochs):
 
@@ -199,20 +190,18 @@ class Trainer(object):
 
                 else:
 
-
                     history = self.model.fit_generator(
                         datagen.flow(
-                            self.x_train, 
-                            self.y_train, 
-                            batch_size=self.batchsize),
-                        steps_per_epoch= self.x_train.shape[0] // self.batchsize,
-                        epochs= epoch + 1, 
-                        validation_data=(self.x_val,self.y_val), 
+                            self.x_train, self.y_train, batch_size=self.batchsize
+                        ),
+                        steps_per_epoch=self.x_train.shape[0] // self.batchsize,
+                        epochs=epoch + 1,
+                        validation_data=(self.x_val, self.y_val),
                         validation_freq=self.val_freq,
                         shuffle=True,
-                        initial_epoch=epoch)
-                    print('use data_aug')
-
+                        initial_epoch=epoch,
+                    )
+                    print("use data_aug")
 
             # fit multi-label classifier
             else:
@@ -220,37 +209,42 @@ class Trainer(object):
                 if self.data_aug == False:
 
                     history = self.model.fit(
-                            self.x_train,
-                            self.y_train,
-                            batch_size=self.batchsize,
-                            validation_data=(self.x_val, self.y_val),
-                            shuffle=True,
-                            epochs=epoch + 1,
-                            initial_epoch=epoch,
-                            validation_freq=self.val_freq,
-                        )
+                        self.x_train,
+                        self.y_train,
+                        batch_size=self.batchsize,
+                        validation_data=(self.x_val, self.y_val),
+                        shuffle=True,
+                        epochs=epoch + 1,
+                        initial_epoch=epoch,
+                        validation_freq=self.val_freq,
+                    )
 
                 else:
 
                     history = self.model.fit_generator(
                         # datagen.flow(
-                        #     self.x_train, 
-                        #     dict_y_train, 
+                        #     self.x_train,
+                        #     dict_y_train,
                         #     batch_size=self.batchsize)
-                        self.generator_two_outputs(self.x_train, dict_y_train['fine'], dict_y_train['coarse'], datagen, self.batchsize),
+                        self.generator_two_outputs(
+                            self.x_train,
+                            dict_y_train["fine"],
+                            dict_y_train["coarse"],
+                            datagen,
+                            self.batchsize,
+                        ),
                         # steps_per_epoch=None,
-                        steps_per_epoch= self.x_train.shape[0] // self.batchsize,
-
-                        epochs= epoch + 1, 
-                        validation_data=(self.x_val, dict_y_val), 
+                        steps_per_epoch=self.x_train.shape[0] // self.batchsize,
+                        epochs=epoch + 1,
+                        validation_data=(self.x_val, dict_y_val),
                         validation_freq=self.val_freq,
                         shuffle=True,
-                        initial_epoch=epoch)
-                    print('use data_aug')
-
+                        initial_epoch=epoch,
+                    )
+                    print("use data_aug")
 
             # print(history.history.keys())
-            
+
             # check mean of layer weights
             for i, layer in enumerate(self.model.layers):
                 if len(layer.get_weights()) > 0:
@@ -258,9 +252,10 @@ class Trainer(object):
                     layer_norms[epoch, i] = np.mean(layer.get_weights()[0])
                     if isinstance(layer, tf.keras.layers.Conv2D):
                         self.log_scalar(
-                            "layer mean/layer {}".format(i), layer_norms[epoch, i], epoch
-                    )
-
+                            "layer mean/layer {}".format(i),
+                            layer_norms[epoch, i],
+                            epoch,
+                        )
 
             # check for change in layer weights
             largest_change = layer_norms[epoch - 1] - layer_norms[epoch]
@@ -269,9 +264,8 @@ class Trainer(object):
                     "change of weights/layer {}".format(i), largest_change[i], epoch
                 )
 
-            #tensorboard scalars for single-label classifer
-            if self.label == 'fine' or self.label == 'coarse':
-
+            # tensorboard scalars for single-label classifer
+            if self.label == "fine" or self.label == "coarse":
 
                 self.log_scalar("accuracy", history.history["acc"][0], epoch)
                 self.log_scalar("loss", history.history["loss"][0], epoch)
@@ -284,8 +278,7 @@ class Trainer(object):
                         "validation loss", history.history["val_loss"][0], epoch
                     )
 
-
-            #tensorboard scalars for multi-label classifier
+            # tensorboard scalars for multi-label classifier
 
             else:
 
@@ -310,7 +303,6 @@ class Trainer(object):
 
             self.file_writer.flush()
 
-
             # pdb.set_trace()
             if not ((epoch + 1) % self.val_freq):
                 is_best = self.best_val_loss < history.history["val_loss"][0]
@@ -320,7 +312,6 @@ class Trainer(object):
             else:
                 is_best = False
 
-
             self.save_checkpoint(history, is_best)
             if not self.check_improvement(is_best):
                 return
@@ -329,38 +320,29 @@ class Trainer(object):
         with open(str(self.save_path) + "model.json", "w") as json_file:
             json_file.write(model_json)
 
-
-
-
-
-
-
-    def test(self, deconv = False):
+    def test(self, deconv=False):
 
         if self.label == "coarse" or self.label == "fine":
             score = self.model.evaluate(x=self.x_test, y=self.y_test)
 
         else:
 
-            y_1_test , y_2_test = np.split(self.y_test,[100],1)
-            y_1_test = np.squeeze(y_1_test,axis=2)
-            y_2_test = np.squeeze(y_2_test,axis=2)
-            dict_y_test = {'fine': y_1_test,'coarse':y_2_test}
-            score = self.model.evaluate(x=self.x_test,y=dict_y_test)
-
+            y_1_test, y_2_test = np.split(self.y_test, [100], 1)
+            y_1_test = np.squeeze(y_1_test, axis=2)
+            y_2_test = np.squeeze(y_2_test, axis=2)
+            dict_y_test = {"fine": y_1_test, "coarse": y_2_test}
+            score = self.model.evaluate(x=self.x_test, y=dict_y_test)
 
     def deconv(self):
 
         pass
 
-
     def save_checkpoint(self, history, is_best):
 
         if is_best:
-            self.model.save(Path(str(self.save_path) + "_best_val_loss" +'.h5'))
+            self.model.save(Path(str(self.save_path) + "_best_val_loss" + ".h5"))
 
-        self.model.save(str(self.save_path) + '.h5')
-
+        self.model.save(str(self.save_path) + ".h5")
 
     def check_improvement(self, is_best):
 
@@ -375,10 +357,10 @@ class Trainer(object):
             return False
         return True
 
-    def generator_two_outputs(self,X , y_fine, y_coarse, datagen, batch_size):
+    def generator_two_outputs(self, X, y_fine, y_coarse, datagen, batch_size):
 
         # pdb.set_trace()
-        
+
         # datagen.fit(self.x_train)
 
         while True:
@@ -387,10 +369,9 @@ class Trainer(object):
 
             Y_coarse_sample = gen_coarse.next()
             Y_fine_sample = gen_fine.next()
-            
+
             # ipdb.set_trace()
             yield Y_coarse_sample[0], [Y_fine_sample[1], Y_coarse_sample[1]]
-        
 
         # while True:
 
@@ -400,9 +381,9 @@ class Trainer(object):
     # def num_batch_per_epoch(self):
     #   'Denotes the number of batches per epoch'
     #   return int(np.floor(len(self.x_train.shape[0]) / self.batch_size))
-   
+
     # def get_datagen(self):
-            
+
     #         datagen = ImageDataGenerator(
     #         featurewise_center=self.featurewise_center,
     #         featurewise_std_normalization=self.featurewise_std_normalization,
@@ -413,18 +394,15 @@ class Trainer(object):
     #         )
     #         return datagen
 
-
-
-
     def log_scalar(self, tag, value, step):
         """Log a scalar variable.
-                Parameter
-                ----------
-                tag : basestring
-                    Name of the scalar
-                value
-                step : int
-                    training iteration
-                """
+        Parameter
+        ----------
+        tag : basestring
+            Name of the scalar
+        value
+        step : int
+            training iteration
+        """
         summary = tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=value)])
         self.file_writer.add_summary(summary, step)

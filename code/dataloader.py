@@ -6,7 +6,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import pdb
 
 
-def get_dataloader(num_train=0, valid=0.1, num_test=0, label="fine",data_aug=False):
+def get_dataloader(num_train=0, valid=0.1, num_test=0, label="fine", data_aug=False):
 
     # one-hot-encoding for labels
     if label == "fine":
@@ -38,12 +38,10 @@ def get_dataloader(num_train=0, valid=0.1, num_test=0, label="fine",data_aug=Fal
     width, height, channels = x_test.shape[1], x_test.shape[2], 3
     x_test = x_test.reshape((x_test.shape[0], width, height, channels))
 
+    # rescale only if Dataset is not augmented
 
-    #rescale only if Dataset is not augmented
+    if data_aug == False:
 
-    if data_aug== False:
-        
-        
         x_train = x_train.astype("float32")
         x_test = x_test.astype("float32")
 
@@ -51,14 +49,12 @@ def get_dataloader(num_train=0, valid=0.1, num_test=0, label="fine",data_aug=Fal
         x_test /= 255.0
 
     if data_aug == True:
-    
+
         x_train = x_train.astype("float32")
         x_test = x_test.astype("float32")
 
         x_train /= 255.0
         x_test /= 255.0
-
-
 
     if not num_train:
         num_train = x_train.shape[0]
