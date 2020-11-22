@@ -19,4 +19,4 @@ The representations in the initial layers are rather simple and increase in comp
 
 [![Build Status](https://api.travis-ci.com/JonaLimp/Ba_Thesis.svg?token=3x3tywg5VyvqsCs7YyK5&branch=master)](https://travis-ci.com/JonaLimp/Ba_Thesis)
 
-The Implementation is written in python. For the training of the CNNs I used tensorflow and keras. Source Code can be found in the Code folder.
+The Implementation is written in Python. For the training of the CNNs I used Tensorflow and Keras. Source code can be found in the Code folder.
