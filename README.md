@@ -1,6 +1,12 @@
-# Methods for analyzing the internal representations of convolutional neural networks
+##  Bachelor Thesis in Cognitive Science
 
-Bachelor Thesis in Cognitive Science:
+#Tilte: Methods for Analyzing the Internal Representations of Convolutional Neural Networks
+
+#University: Unversität Osnabrück 
+
+#Primary supervisior: Hristofor Lukanov, M. Sc.
+
+#Second Supervisior: Prof Dr. Gordon Pipa
 
 [![Build Status](https://api.travis-ci.com/JonaLimp/Ba_Thesis.svg?token=3x3tywg5VyvqsCs7YyK5&branch=master)](https://travis-ci.com/JonaLimp/Ba_Thesis)
 
