@@ -23,7 +23,7 @@ MODEL:
 TRAIN:
     IS_TRAIN: True
 
-    EPOCHS: 5
+    EPOCHS: 1
     BATCH_SIZE: 16
     INIT_LR: 3.e-2
     MOMENTUM: 0.9
