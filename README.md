@@ -2,7 +2,7 @@
 
 Bachelor Thesis in Cognitive Science:
 
-[![Build Status](https://api.travis-ci.com/johnasduke/Ba_Methods_CNN.svg?token=3x3tywg5VyvqsCs7YyK5&branch=master)](https://travis-ci.com/johnasduke/Ba_Methods_CNN)
+[![Build Status](https://api.travis-ci.com/JonaLimp/Ba_Methods_CNN.svg?token=3x3tywg5VyvqsCs7YyK5&branch=master)](https://travis-ci.com/JonaLimp/Ba_Methods_CNN)
 
 
 ## Get started
