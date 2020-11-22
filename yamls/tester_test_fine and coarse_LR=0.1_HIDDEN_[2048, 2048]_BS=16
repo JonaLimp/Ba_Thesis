@@ -1,0 +1,33 @@
+MODEL:
+  DROPOUT: 0.5
+  HIDDEN:
+  - 2048
+  - 2048
+  NEURON_ARR:
+  - 32
+  - 64
+  - 128
+  - 128
+  PRETRAINED: true
+  TYPE: VGG16
+  VGG16_top: false
+NAME: tester
+NOTE: test
+PRE_PROCESSING:
+  LABEL: fine and coarse
+RESUME: false
+TEST:
+  NUM: 0
+TRAIN:
+  BATCH_SIZE: 16
+  EPOCHS: 10
+  INIT_LR: 0.1
+  IS_TRAIN: true
+  LOSS: categorical_crossentropy
+  MOMENTUM: 0.9
+  NUM: 1000
+  OPTIM: adam
+  TRAIN_PATIENCE: 20
+  VALID: 0.1
+  VALID_FREQ: 1
+  WEIGHT_DECAY: 0.0
