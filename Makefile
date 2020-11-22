@@ -16,7 +16,7 @@ black:
 
 test:
 	$(PYTHON) code/main.py -c configs/test.yaml
-	$(PYTHON) -m flake8 code
+	#$(PYTHON) -m flake8 code
 
 clean:
 	for dir in code ; \
