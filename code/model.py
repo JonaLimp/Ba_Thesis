@@ -484,5 +484,5 @@ def create_model(type, pretrained, img_shape, n_hidden, dropout, label, arr_chan
         model = Model(inputs=visible, outputs=out)
     
     logger.info(model.summary())
-    plot_model(model, to_file=os.path.join(os.getcwd(),'model_{}_plot.png'.format("combined")), show_shapes=True, show_layer_names=True)
+
     return model
